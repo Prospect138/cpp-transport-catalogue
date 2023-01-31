@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace transport_catalogue ;
+using namespace transport_catalogue;
 
 //Bus 256: 6 stops on route, 5 unique stops, 4371.02 route length
 void output::ReadOutput(std::string& query, catalog::TransportCatalogue& catalog){
@@ -51,3 +51,5 @@ void output::ReadOutput(std::string& query, catalog::TransportCatalogue& catalog
         std::cout<<std::endl;
     }
 }
+
+

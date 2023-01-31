@@ -8,14 +8,12 @@ stat_reader.cpp
 transport_catalogue.cpp
 )
 
-set(HDR
+set(HDRы
 geo.h
 input_reader.h
 stat_reader.h
 transport_catalogue.h
 )
-
-set(CMAKE_CXX_COMPILER "C:/Program Files/LLVM/bin/clang++")
 
 add_executable(a ${SRC} ${HDR})
 set_target_properties (a PROPERTIES

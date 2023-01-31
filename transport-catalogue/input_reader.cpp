@@ -44,7 +44,7 @@ void input::ParseStop(std::string& query, catalog::TransportCatalogue& catalog){
 void input::ParseBus(std::string& query, catalog::TransportCatalogue& catalog){
     
     catalog::BusQuery cnt;
-    cnt.rt = query.substr(0, query.find(':'));
+    cnt.route_name = query.substr(0, query.find(':'));
     query = query.substr(query.find(':')+1);
     query = query.substr(query.find_first_not_of(' '));
     char a = ' ';
@@ -60,10 +60,10 @@ void input::ParseBus(std::string& query, catalog::TransportCatalogue& catalog){
         std::string to_push = query.substr(0, query.find(a)-1);
 
         if (to_push == query){
-            cnt.content.push_back(std::move(to_push));
+            cnt.query_content.push_back(std::move(to_push));
             break;
         }
-        cnt.content.push_back(std::move(to_push));
+        cnt.query_content.push_back(std::move(to_push));
         query = query.substr(query.find(a));
         query = query.substr(2); 
     }
