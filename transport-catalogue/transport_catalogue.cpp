@@ -92,7 +92,7 @@ BusInfo TransportCatalogue::GetBusInfo(const Bus& bus) const{
     return bus_info;
 }
 
-std::set<std::string> TransportCatalogue::GetStopInfo(const std::string& query) {
+std::set<std::string> TransportCatalogue::GetStopInfo(std::string_view query) {
 
     std::set<std::string> buses_at_stop;
 

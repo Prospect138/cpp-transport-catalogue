@@ -54,7 +54,7 @@ public:
     Bus* FindBus(std::string_view bus_name);
     void AddBus(const BusQuery& query);
     BusInfo GetBusInfo(const Bus& bus) const;
-    std::set<std::string> GetStopInfo(const std::string& query);
+    std::set<std::string> GetStopInfo(std::string_view query);
 
 private:
     std::deque<Stop> stops_;

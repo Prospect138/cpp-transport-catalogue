@@ -5,6 +5,6 @@
 
 namespace transport_catalogue::output{
 
-void ReadOutput(std::string& query, catalog::TransportCatalogue& catalog);
+void ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog);
 
 }
