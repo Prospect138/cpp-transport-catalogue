@@ -25,24 +25,22 @@ std::vector<std::pair<std::string, double>> dst_info){
             st2 = stopname_to_stop_[key];
             stop_stop_to_dist_[{st1, st2}] = value;
         }
-        else {
-            Stop* st2;
-            st2 = new Stop;
-            st2 -> stop_name = key;
-            stops_.push_back(*st2);
-            stopname_to_stop_[stops_.back().stop_name] = st2;
-            stop_stop_to_dist_[{st1, st2}] = value;
-        }
         //else {
-        //    Stop st2;
-        //    st2.stop_name = key;
-        //    stops_.push_back(std::move(st2));
-        //    stopname_to_stop_[stops_.back().stop_name] = &st2;
-        //    stop_stop_to_dist_[{st1, &stops_.back()}] = value;
+        //    Stop* st2;
+        //    st2 = new Stop;
+        //    st2 -> stop_name = key;
+        //    stops_.push_back(*st2);
+        //    stopname_to_stop_[stops_.back().stop_name] = st2;
+        //    stop_stop_to_dist_[{st1, st2}] = value;
         //}
-
+        else {
+            Stop st2;
+            st2.stop_name = key;
+            stops_.push_back(std::move(st2));
+            stopname_to_stop_[stops_.back().stop_name] = &stops_.back();
+            stop_stop_to_dist_[{st1, &stops_.back()}] = value;
+        }
     }
-
 }
 
 Stop* TransportCatalogue::FindStop(const std::string& stop) {
