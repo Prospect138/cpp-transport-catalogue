@@ -5,8 +5,11 @@
 
 using namespace transport_catalogue;
 
-//Bus 256: 6 stops on route, 5 unique stops, 4371.02 route length
-void output::ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog){
+namespace transport_catalogue::output {
+
+using namespace transport_catalogue;
+
+void ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog){
     std::string query_type = std::string(query.substr(0, query.find_first_of(' ')));
     query = query.substr(query.find(' ')+1);
     if (query_type == "Bus"){
@@ -52,4 +55,4 @@ void output::ReadOutput(std::string_view query, catalog::TransportCatalogue& cat
     }
 }
 
-
+}

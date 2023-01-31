@@ -36,8 +36,10 @@ struct BusInfo{
     double curvature;
 };
 
-struct Hesher{
-    size_t operator()(const std::pair<Stop*, Stop*> st) const{
+namespace detail {
+    
+    struct Hasher_stop{
+    size_t operator()(const std::pair<transport_catalogue::catalog::Stop*, transport_catalogue::catalog::Stop*> st) const{
         size_t str1 = h1(st.first -> stop_name);
         size_t str2 = h2(st.second -> stop_name);
         return str1 + str2 * 42;
@@ -45,6 +47,8 @@ struct Hesher{
     std::hash<std::string> h1;
     std::hash<std::string> h2;
 };
+
+}
 
 class TransportCatalogue {
 public:
@@ -61,7 +65,8 @@ private:
     std::deque<Bus> routs_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
     std::unordered_map<std::string_view, Bus*> busname_to_bus_;
-    std::unordered_map<std::pair<Stop*, Stop*>, double, Hesher> stop_stop_to_dist_;
+    std::unordered_map<std::pair<Stop*, Stop*>, double, detail::Hasher_stop> stop_stop_to_dist_;
 };
 
 }
+

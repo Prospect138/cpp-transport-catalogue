@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace transport_catalogue::catalog;
+namespace transport_catalogue::catalog {
 
 void TransportCatalogue::AddStop(std::string_view stop_name, const double lat, const double lng,
 std::vector<std::pair<std::string, double>> dst_info){
@@ -18,7 +18,7 @@ std::vector<std::pair<std::string, double>> dst_info){
         stopname_to_stop_[stop_name] -> coordinates.lng = lng;
     }
     Stop* st1 = stopname_to_stop_[stop_name];
-    for (auto [key, value] : dst_info){
+    for (auto& [key, value] : dst_info){
         Stop* st2;
         if (stopname_to_stop_.count(key)){
             st2 = stopname_to_stop_[key];
@@ -110,4 +110,6 @@ std::set<std::string> TransportCatalogue::GetStopInfo(std::string_view query) {
     }
     
     return buses_at_stop;
+}
+
 }
