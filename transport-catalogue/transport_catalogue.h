@@ -13,8 +13,7 @@ namespace transport_catalogue::catalog{
 
 enum class RouteType {
     ROUND,
-    NOT_ROUND,
-    INVALID
+    NOT_ROUND
 };
 
 struct BusQuery{

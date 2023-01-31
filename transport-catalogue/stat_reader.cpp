@@ -3,8 +3,6 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace transport_catalogue;
-
 namespace transport_catalogue::output {
 
 using namespace transport_catalogue;
@@ -13,12 +11,12 @@ void ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog){
     std::string query_type = std::string(query.substr(0, query.find_first_of(' ')));
     query = query.substr(query.find(' ')+1);
     if (query_type == "Bus"){
-        catalog::Bus the_bus = *catalog.FindBus(query);
-        if (the_bus.type == catalog::RouteType::INVALID){
-            std::cout<<"Bus "<<the_bus.rout_name<<": not found"<<std::endl;
+        catalog::Bus* the_bus = catalog.FindBus(query);
+        if (!the_bus){
+            std::cout<<"Bus "<<query<<": not found"<<std::endl;
             return;
         }
-        catalog::BusInfo that_bus = catalog.GetBusInfo(the_bus);
+        catalog::BusInfo that_bus = catalog.GetBusInfo(*the_bus);
         std::cout<<std::setprecision(6)<<"Bus "<<that_bus.rout_name<<": "<<that_bus.num_of_stops<<" stops on route, "<<
         that_bus.uinque_stops<<" unique stops, "<<that_bus.length<<" route length, "<<
         that_bus.curvature<<" curvature"<<std::endl;

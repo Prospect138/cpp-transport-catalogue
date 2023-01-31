@@ -19,17 +19,28 @@ std::vector<std::pair<std::string, double>> dst_info){
     }
     Stop* st1 = stopname_to_stop_[stop_name];
     for (auto& [key, value] : dst_info){
-        Stop* st2;
+
         if (stopname_to_stop_.count(key)){
+            Stop* st2;
             st2 = stopname_to_stop_[key];
+            stop_stop_to_dist_[{st1, st2}] = value;
         }
         else {
+            Stop* st2;
             st2 = new Stop;
             st2 -> stop_name = key;
             stops_.push_back(*st2);
             stopname_to_stop_[stops_.back().stop_name] = st2;
+            stop_stop_to_dist_[{st1, st2}] = value;
         }
-        stop_stop_to_dist_[{st1, st2}] = value;
+        //else {
+        //    Stop st2;
+        //    st2.stop_name = key;
+        //    stops_.push_back(std::move(st2));
+        //    stopname_to_stop_[stops_.back().stop_name] = &st2;
+        //    stop_stop_to_dist_[{st1, &stops_.back()}] = value;
+        //}
+
     }
 
 }
@@ -42,7 +53,7 @@ void TransportCatalogue::AddBus(const BusQuery& query){
     Bus bus;
     bus.type = query.type;
     bus.rout_name = query.route_name;
-    for (std::string st : query.query_content){
+    for (const std::string& st : query.query_content){
         Stop* that_stop = FindStop(st);
         bus.rout.push_back(that_stop);
     }
@@ -60,11 +71,12 @@ Bus* TransportCatalogue::FindBus(std::string_view bus_name){
         return busname_to_bus_.at(bus_name);
     }
     else {
-        Bus* not_a_bus;
-        not_a_bus = new Bus;
-        not_a_bus -> rout_name = bus_name;
-        not_a_bus -> type = RouteType::INVALID;
-        return not_a_bus;
+        //Bus* not_a_bus;
+        //not_a_bus = new Bus;
+        //not_a_bus -> rout_name = bus_name;
+        //not_a_bus -> type = RouteType::INVALID;
+        //return not_a_bus;
+        return nullptr;
     }
 }
 
