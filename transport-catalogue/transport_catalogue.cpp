@@ -46,7 +46,7 @@ void TransportCatalogue::AddBus(const BusQuery& query){
         Stop* that_stop = FindStop(st);
         bus.rout.push_back(that_stop);
     }
-    if (bus.type == "not rounded"){
+    if (bus.type == RouteType::NOT_ROUND){
         for (int i = bus.rout.size()-2; i >= 0; --i){
             bus.rout.push_back(bus.rout[i]);
         }
@@ -63,7 +63,7 @@ Bus* TransportCatalogue::FindBus(std::string_view bus_name){
         Bus* not_a_bus;
         not_a_bus = new Bus;
         not_a_bus -> rout_name = bus_name;
-        not_a_bus -> type = "INVALID";
+        not_a_bus -> type = RouteType::INVALID;
         return not_a_bus;
     }
 }

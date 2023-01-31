@@ -11,9 +11,15 @@
 
 namespace transport_catalogue::catalog{
 
+enum class RouteType {
+    ROUND,
+    NOT_ROUND,
+    INVALID
+};
+
 struct BusQuery{
     std::string route_name;
-    std::string type;
+    RouteType type;
     std::vector<std::string> query_content;
 };
 
@@ -25,7 +31,7 @@ struct Stop{
 struct Bus{
     std::string rout_name;
     std::vector<Stop*> rout;
-    std::string type;
+    RouteType type;
 };
 
 struct BusInfo{

@@ -14,7 +14,7 @@ void ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog){
     query = query.substr(query.find(' ')+1);
     if (query_type == "Bus"){
         catalog::Bus the_bus = *catalog.FindBus(query);
-        if (the_bus.type == "INVALID"){
+        if (the_bus.type == catalog::RouteType::INVALID){
             std::cout<<"Bus "<<the_bus.rout_name<<": not found"<<std::endl;
             return;
         }

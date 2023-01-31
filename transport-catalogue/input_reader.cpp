@@ -50,11 +50,11 @@ void input::ParseBus(std::string& query, catalog::TransportCatalogue& catalog){
     char a = ' ';
     if (std::count(query.begin(), query.end(), '-')){
         a = '-';
-        cnt.type = "not rounded";
+        cnt.type = catalog::RouteType::NOT_ROUND;
     }
     else if (std::count(query.begin(), query.end(), '>')){
         a = '>';
-        cnt.type = "rounded";
+        cnt.type = catalog::RouteType::ROUND;
     }
     while (true){
         std::string to_push = query.substr(0, query.find(a)-1);
