@@ -6,8 +6,8 @@
 
 namespace transport_catalogue::input {
 
-void ParseStop(std::string& query, catalog::TransportCatalogue& catalog);
-void ParseBus(std::string& query, catalog::TransportCatalogue& catalog);
-void ReadInput(std::string& query, catalog::TransportCatalogue& catalog);
+void ParseStop(std::string_view query, catalog::TransportCatalogue& catalog);
+void ParseBus(std::string_view query, catalog::TransportCatalogue& catalog);
+void ReadInput(std::string_view query, catalog::TransportCatalogue& catalog);
 
 }

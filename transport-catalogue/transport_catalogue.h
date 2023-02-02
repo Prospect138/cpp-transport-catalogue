@@ -8,6 +8,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <optional> 
 
 namespace transport_catalogue::catalog{
 
@@ -19,7 +20,7 @@ enum class RouteType {
 struct BusQuery{
     std::string route_name;
     RouteType type;
-    std::vector<std::string> query_content;
+    std::vector<std::string> stops_list;
 };
 
 struct Stop{
@@ -43,7 +44,7 @@ struct BusInfo{
 
 namespace detail {
     
-    struct Hasher_stop{
+    struct StopsHasher{
     size_t operator()(const std::pair<transport_catalogue::catalog::Stop*, transport_catalogue::catalog::Stop*> st) const{
         size_t str1 = h1(st.first -> stop_name);
         size_t str2 = h2(st.second -> stop_name);
@@ -57,20 +58,20 @@ namespace detail {
 
 class TransportCatalogue {
 public:
-    Stop* FindStop(const std::string& stop);
+    Stop* FindStop(const std::string_view stop);
     void AddStop(std::string_view stop_name, const double lat, const double lng, 
-        std::vector<std::pair<std::string, double>> dst_info);
+        const std::vector<std::pair<std::string, double>>& dst_info);
     Bus* FindBus(std::string_view bus_name);
     void AddBus(const BusQuery& query);
     BusInfo GetBusInfo(const Bus& bus) const;
-    std::set<std::string> GetStopInfo(std::string_view query);
+    std::optional<std::set<std::string>> GetStopInfo(std::string_view query);
 
 private:
     std::deque<Stop> stops_;
     std::deque<Bus> routs_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
     std::unordered_map<std::string_view, Bus*> busname_to_bus_;
-    std::unordered_map<std::pair<Stop*, Stop*>, double, detail::Hasher_stop> stop_stop_to_dist_;
+    std::unordered_map<std::pair<Stop*, Stop*>, double, detail::StopsHasher> stop_stop_to_dist_;
 };
 
 }

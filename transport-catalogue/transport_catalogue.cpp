@@ -7,7 +7,7 @@
 namespace transport_catalogue::catalog {
 
 void TransportCatalogue::AddStop(std::string_view stop_name, const double lat, const double lng,
-std::vector<std::pair<std::string, double>> dst_info){
+const std::vector<std::pair<std::string, double>>& dst_info){
     if (!stopname_to_stop_.count(stop_name)){
         Stop the_stop{std::string{stop_name}, lat, lng}; 
         stops_.push_back(std::move(the_stop));
@@ -25,14 +25,6 @@ std::vector<std::pair<std::string, double>> dst_info){
             st2 = stopname_to_stop_[key];
             stop_stop_to_dist_[{st1, st2}] = value;
         }
-        //else {
-        //    Stop* st2;
-        //    st2 = new Stop;
-        //    st2 -> stop_name = key;
-        //    stops_.push_back(*st2);
-        //    stopname_to_stop_[stops_.back().stop_name] = st2;
-        //    stop_stop_to_dist_[{st1, st2}] = value;
-        //}
         else {
             Stop st2;
             st2.stop_name = key;
@@ -43,7 +35,7 @@ std::vector<std::pair<std::string, double>> dst_info){
     }
 }
 
-Stop* TransportCatalogue::FindStop(const std::string& stop) {
+Stop* TransportCatalogue::FindStop(const std::string_view stop) {
     return stopname_to_stop_.at(stop);
 }
 
@@ -51,7 +43,7 @@ void TransportCatalogue::AddBus(const BusQuery& query){
     Bus bus;
     bus.type = query.type;
     bus.rout_name = query.route_name;
-    for (const std::string& st : query.query_content){
+    for (const std::string& st : query.stops_list){
         Stop* that_stop = FindStop(st);
         bus.rout.push_back(that_stop);
     }
@@ -69,11 +61,6 @@ Bus* TransportCatalogue::FindBus(std::string_view bus_name){
         return busname_to_bus_.at(bus_name);
     }
     else {
-        //Bus* not_a_bus;
-        //not_a_bus = new Bus;
-        //not_a_bus -> rout_name = bus_name;
-        //not_a_bus -> type = RouteType::INVALID;
-        //return not_a_bus;
         return nullptr;
     }
 }
@@ -102,24 +89,23 @@ BusInfo TransportCatalogue::GetBusInfo(const Bus& bus) const{
     return bus_info;
 }
 
-std::set<std::string> TransportCatalogue::GetStopInfo(std::string_view query) {
+std::optional<std::set<std::string>> TransportCatalogue::GetStopInfo(std::string_view query) {
 
     std::set<std::string> buses_at_stop;
 
     if (!stopname_to_stop_.count(query)){
-        buses_at_stop.insert("UNIQUE NULL SIGNAL 666!");
-        return buses_at_stop;
+        return std::nullopt;
     }
 
-    for (Bus that_bus : routs_){
+    for (const Bus& that_bus : routs_){
         for (Stop* stop : that_bus.rout){
             if (stop->stop_name == query){
-                buses_at_stop.insert(that_bus.rout_name);
+                buses_at_stop.emplace(that_bus.rout_name);
             }
         }
     }
     
-    return buses_at_stop;
+    return std::optional<std::set<std::string>>{buses_at_stop};
 }
 
 }

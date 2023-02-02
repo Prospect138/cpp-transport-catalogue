@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <optional>
 
 namespace transport_catalogue::output {
 
@@ -22,22 +23,22 @@ void ReadOutput(std::string_view query, catalog::TransportCatalogue& catalog){
         that_bus.curvature<<" curvature"<<std::endl;
     }
     else if (query_type == "Stop"){
-        std::set<std::string> buses_at_stop = catalog.GetStopInfo(query);
+        std::optional<std::set<std::string>> buses_at_stop = catalog.GetStopInfo(query);
         std::cout<<"Stop "<<query<<": ";
 
-        if (buses_at_stop.count("UNIQUE NULL SIGNAL 666!")){
+        if (!buses_at_stop){
             std::cout<<"not found";
         }
 
-        else if (!buses_at_stop.empty()){
+        else if (buses_at_stop){
             std::cout<<"buses ";
-            auto it = buses_at_stop.begin();
+            auto it = buses_at_stop -> begin();
             auto next = it;
 
             while (true){
                 ++next;
                 std::cout<<*it;
-                if (next == buses_at_stop.end()){
+                if (next == buses_at_stop-> end()){
                     break;
                 }
                 std::cout<<" ";
