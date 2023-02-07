@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geo.h"
+#include "domain.h"
 
 #include <string>
 #include <vector>
@@ -12,34 +13,10 @@
 
 namespace transport_catalogue::catalog{
 
-enum class RouteType {
-    ROUND,
-    NOT_ROUND
-};
-
 struct BusQuery{
     std::string route_name;
     RouteType type;
     std::vector<std::string> stops_list;
-};
-
-struct Stop{
-    std::string stop_name;
-    Coordinates coordinates;
-};
-
-struct Bus{
-    std::string rout_name;
-    std::vector<Stop*> rout;
-    RouteType type;
-};
-
-struct BusInfo{
-    std::string rout_name;
-    int num_of_stops;
-    int uinque_stops;
-    double length;
-    double curvature;
 };
 
 namespace detail {
@@ -65,6 +42,10 @@ public:
     void AddBus(const BusQuery& query);
     BusInfo GetBusInfo(const Bus& bus) const;
     std::optional<std::set<std::string>> GetStopInfo(std::string_view query);
+    const std::map<std::string_view, const Bus*> GetBuses() const;
+    const std::map<std::string_view, const Stop*> GetStops() const;
+    const std::set<std::string_view>& GetBusesForStop(std::string_view stop) const;
+
 
 private:
     std::deque<Stop> stops_;
@@ -72,6 +53,8 @@ private:
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
     std::unordered_map<std::string_view, Bus*> busname_to_bus_;
     std::unordered_map<std::pair<Stop*, Stop*>, double, detail::StopsHasher> stop_stop_to_dist_;
+    std::unordered_map<std::string_view, std::set<std::string_view>> stop_and_buses_;
+
 };
 
 }

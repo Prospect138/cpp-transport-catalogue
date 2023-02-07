@@ -1,8 +1,9 @@
-
 #include "transport_catalogue.h"
 
 #include <algorithm>
 #include <iostream>
+
+const std::set<std::string_view> EMPTY_BUS_ROUTE_SET{};
 
 namespace transport_catalogue::catalog {
 
@@ -35,8 +36,14 @@ const std::vector<std::pair<std::string, double>>& dst_info){
     }
 }
 
+// Find pointer to stop struct with string 
 Stop* TransportCatalogue::FindStop(const std::string_view stop) {
-    return stopname_to_stop_.at(stop);
+    if (stopname_to_stop_.count(stop)){
+        return stopname_to_stop_.at(stop);
+    }
+    else {
+        return nullptr;
+    }
 }
 
 void TransportCatalogue::AddBus(const BusQuery& query){
@@ -54,8 +61,13 @@ void TransportCatalogue::AddBus(const BusQuery& query){
     }
     routs_.push_back(std::move(bus));
     busname_to_bus_[routs_.back().rout_name] = &routs_.back();
+
+    for (const Stop* stop : busname_to_bus_[routs_.back().rout_name]->rout) {
+        stop_and_buses_[stop->stop_name].insert(routs_.back().rout_name);
+    }
 }
 
+// Find bus struct by its name
 Bus* TransportCatalogue::FindBus(std::string_view bus_name){
     if (busname_to_bus_.count(bus_name)){
         return busname_to_bus_.at(bus_name);
@@ -65,6 +77,8 @@ Bus* TransportCatalogue::FindBus(std::string_view bus_name){
     }
 }
 
+// Returns info about bus with stops, length etc
+//
 BusInfo TransportCatalogue::GetBusInfo(const Bus& bus) const{
 
     std::set<std::string> buffer_names;
@@ -89,6 +103,19 @@ BusInfo TransportCatalogue::GetBusInfo(const Bus& bus) const{
     return bus_info;
 }
 
+//Additional method for getting all routes that cross the stop
+const std::set<std::string_view>& TransportCatalogue::GetBusesForStop(std::string_view stop) const {
+    const auto iter = stop_and_buses_.find(stop);
+
+    if (iter == stop_and_buses_.end()) {
+        return EMPTY_BUS_ROUTE_SET;
+    }
+
+    return iter->second;
+}
+
+// Returns info about Stop and which routs do cross it
+// Returns nullopt if its no existing buses
 std::optional<std::set<std::string>> TransportCatalogue::GetStopInfo(std::string_view query) {
 
     std::set<std::string> buses_at_stop;
@@ -106,6 +133,18 @@ std::optional<std::set<std::string>> TransportCatalogue::GetStopInfo(std::string
     }
     
     return std::optional<std::set<std::string>>{buses_at_stop};
+}
+
+// getter
+const std::map<std::string_view, const Bus*> TransportCatalogue::GetBuses() const {
+    std::map<std::string_view, const Bus*>  result(busname_to_bus_.begin(), busname_to_bus_.end());
+    return result;
+}
+
+// another getter
+const std::map<std::string_view, const Stop*> TransportCatalogue::GetStops() const {
+    std::map<std::string_view, const Stop*> result(stopname_to_stop_.begin(), stopname_to_stop_.end());
+    return result;
 }
 
 }

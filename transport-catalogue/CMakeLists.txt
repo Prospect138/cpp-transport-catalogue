@@ -3,16 +3,22 @@ project(transport_vs)
 
 set(SRC 
 main.cpp
-input_reader.cpp
-stat_reader.cpp 
+domain.cpp
 transport_catalogue.cpp
+json.cpp
+json_reader.cpp
+map_renderer.cpp
+svg.cpp
 )
 
-set(HDRы
+set(HDR
 geo.h
-input_reader.h
-stat_reader.h
+domain.h
 transport_catalogue.h
+json.h
+json_reader.h
+map_renderer.h
+svg.h
 )
 
 add_executable(a ${SRC} ${HDR})
