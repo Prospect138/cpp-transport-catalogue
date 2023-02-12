@@ -16,14 +16,14 @@ void JsonReader::WriteInfo(std::ostream& out){
     for (json::Node element : request_to_output_){
         output_array.push_back(element);
     }
-    json::PrintNode(output_array, out);
+    json::Print(json::Document{json::Builder{}.Value(output_array).Build()}, out);
 }
 
 
 // Reads Raw Json and put it to obj
 void JsonReader::ReadRawJson(std::istream& input){
     json::Document doc = json::Load(input);
-    if (doc.GetRoot().IsMap()) {
+    if (doc.GetRoot().IsDict()) {
         documents_.emplace_back(std::move(doc));
     }
 }
@@ -33,19 +33,19 @@ void JsonReader::ParseJson(){
     for (auto& doc : documents_){
         json::Node raw_map = doc.GetRoot();
         // If input json is not a map, throw exception;
-        if (!raw_map.IsMap()){
+        if (!raw_map.IsDict()){
             throw json::ParsingError("Incorrect input data type");
         }
         // Adding info to catalog and collecting out requests;
-        for(const auto& [key, value] : raw_map.AsMap()){
+        for(const auto& [key, value] : raw_map.AsDict()){
             if (key == "base_requests"){
-                AddToCatalog(raw_map.AsMap().at(key));
+                AddToCatalog(raw_map.AsDict().at(key));
             }
             else if (key == "render_settings"){
-                ReadRenderSettings(raw_map.AsMap().at(key));
+                ReadRenderSettings(raw_map.AsDict().at(key));
             }
             else if (key == "stat_requests"){
-                CollectOutput(raw_map.AsMap().at(key));
+                CollectOutput(raw_map.AsDict().at(key));
             }
         }
     }
@@ -63,7 +63,7 @@ void JsonReader::AddToCatalog(json::Node node) {
     // First iteratinon over node only for add stops
     for (auto& element : arr){
         //Looks on each element as on map
-        const json::Dict& dict = element.AsMap();
+        const json::Dict& dict = element.AsDict();
         const auto type_i = dict.find("type"s);
         if (type_i == dict.end()) {
             continue;
@@ -97,10 +97,10 @@ void JsonReader::AddToCatalog(json::Node node) {
 
             const auto dist_i = dict.find("road_distances"s);
 
-            if (dist_i != dict.end() && !(dist_i->second.IsMap())) {
+            if (dist_i != dict.end() && !(dist_i->second.IsDict())) {
                 continue;
             }// проверка, что это словарь. он необязательный для остановки.
-            for (const auto& [other_name, other_dist] : dist_i->second.AsMap()) {
+            for (const auto& [other_name, other_dist] : dist_i->second.AsDict()) {
                 if (!other_dist.IsInt()) {
                     continue; 
                 }
@@ -115,7 +115,7 @@ void JsonReader::AddToCatalog(json::Node node) {
     //second iteration is about adding buses with existing stops
     for (auto& element : arr){
         //Looks on each element as on map
-        const json::Dict& dict = element.AsMap();
+        const json::Dict& dict = element.AsDict();
         const auto type_i = dict.find("type"s);
         if (type_i == dict.end()) {
             continue;
@@ -167,10 +167,10 @@ void JsonReader::CollectOutput(json::Node request){
 
     // Iterating over request array
     for (auto& element : arr){
-        if (!element.IsMap()) {
+        if (!element.IsDict()) {
             throw json::ParsingError("One of request nodes is not a dictionary.");
         }
-        const json::Dict& request_fields = element.AsMap();
+        const json::Dict& request_fields = element.AsDict();
 
         // Check id and type
         int id = -1;
@@ -256,11 +256,11 @@ void JsonReader::CollectOutput(json::Node request){
 // Store parsed renderer settings as Node to costruct him later
 void JsonReader::ReadRenderSettings(json::Node node) {
 
-    if (!node.IsMap()) {
+    if (!node.IsDict()) {
         throw json::ParsingError("Error reading JSON data with render settings.");
     }
 
-    raw_render_settings_ = node.AsMap();
+    raw_render_settings_ = node.AsDict();
 
 }
 

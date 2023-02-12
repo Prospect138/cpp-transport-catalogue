@@ -85,7 +85,7 @@ BusInfo TransportCatalogue::GetBusInfo(const Bus& bus) const{
     int n_of_stops = bus.rout.size();
     double length2 = 0;
     double length = 0;
-    for (int i = 1; i < bus.rout.size(); ++i){
+    for (size_t i = 1; i < bus.rout.size(); ++i){
         Stop* st1 = bus.rout[i-1];
         Stop* st2 = bus.rout[i];
         buffer_names.insert(st1 ->stop_name);

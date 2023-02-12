@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "json.h"
+#include "json_builder.h"
 #include "domain.h"
 #include "transport_catalogue.h"
 #include "map_renderer.h"
@@ -38,11 +39,11 @@ public:
     renderer::RendererSettings GetParsedRenderSettings();
 
 private:
-
     catalog::TransportCatalogue& transport_catalogue_;
     std::vector<json::Document> documents_;
     std::vector<json::Node> request_to_output_;
     json::Dict raw_render_settings_;
+
 };
 
 }
