@@ -51,16 +51,7 @@ void JsonReader::ParseJson(){
     }
 }
 
-//Adds data from Base_Request part of input;
-void JsonReader::AddToCatalog(json::Node node) {
-    if (!node.IsArray()) {
-        throw json::ParsingError("Incorrect input data type");
-    }
-
-    // Представляем ноду массивом
-    const json::Array& arr = node.AsArray();
-
-    // First iteratinon over node only for add stops
+void JsonReader::AddStop(const json::Array& arr){
     for (auto& element : arr){
         //Looks on each element as on map
         const json::Dict& dict = element.AsDict();
@@ -111,8 +102,9 @@ void JsonReader::AddToCatalog(json::Node node) {
             stop.coordinates.lng, dst_info);
         }
     }
+}
 
-    //second iteration is about adding buses with existing stops
+void JsonReader::AddBus(const json::Array& arr){
     for (auto& element : arr){
         //Looks on each element as on map
         const json::Dict& dict = element.AsDict();
@@ -158,6 +150,54 @@ void JsonReader::AddToCatalog(json::Node node) {
     }
 }
 
+//Adds data from Base_Request part of input;
+void JsonReader::AddToCatalog(json::Node node) {
+    if (!node.IsArray()) {
+        throw json::ParsingError("Incorrect input data type");
+    }
+    // Представляем ноду массивом
+    const json::Array& arr = node.AsArray();
+
+    AddStop(arr);
+    AddBus(arr);
+}
+
+void JsonReader::CollectMap(int id){
+    renderer::MapRenderer svg_map(GetParsedRenderSettings());
+    std::ostringstream stream;
+    svg_map.RenderSvgMap(transport_catalogue_, stream);
+    json::Dict result;
+    result.emplace("request_id"s, id);
+    result.emplace("map"s, std::move(stream.str()));
+    request_to_output_.push_back(json::Node(result));
+}
+
+void JsonReader::CollectStop(const std::string& name, int id){
+    json::Dict result;
+    json::Array buses;
+    const std::optional<std::set<std::string>>& bus_routes = transport_catalogue_.GetStopInfo(name);
+    for (auto bus_route : *bus_routes) {
+        buses.emplace_back(std::string{bus_route});
+    }
+    result.emplace("request_id"s, id);
+    result.emplace("buses"s, buses);
+
+    request_to_output_.push_back(json::Node(result));
+}
+
+void JsonReader::CollectBus(catalog::Bus* bus, int id){
+    catalog::BusInfo info = transport_catalogue_.GetBusInfo(*bus);
+
+    json::Dict result;
+    result.emplace("request_id"s, id);
+    result.emplace("curvature"s, info.curvature);
+    result.emplace("route_length"s, static_cast<int>(info.length));
+    result.emplace("stop_count"s, static_cast<int>(info.num_of_stops));
+    result.emplace("unique_stop_count"s, static_cast<int>(info.uinque_stops));
+
+    request_to_output_.push_back(json::Node(result));
+}
+
 void JsonReader::CollectOutput(json::Node request){
     using namespace transport_catalogue;
     if (!request.IsArray()){
@@ -189,17 +229,7 @@ void JsonReader::CollectOutput(json::Node request){
 
         //Parse map
         if ( type == "Map"s) {
-            renderer::MapRenderer svg_map(GetParsedRenderSettings());
-
-            std::ostringstream stream;
-            svg_map.RenderSvgMap(transport_catalogue_, stream);
-
-            json::Dict result;
-            result.emplace("request_id"s, id);
-            result.emplace("map"s, std::move(stream.str()));
-
-            request_to_output_.push_back(json::Node(result));
-
+            CollectMap(id);
             continue;
         }
 
@@ -218,16 +248,7 @@ void JsonReader::CollectOutput(json::Node request){
                 request_to_output_.push_back(GetErrorNode(id));
                 continue;
             }
-            catalog::BusInfo info = transport_catalogue_.GetBusInfo(*bus);
-
-            json::Dict result;
-            result.emplace("request_id"s, id);
-            result.emplace("curvature"s, info.curvature);
-            result.emplace("route_length"s, static_cast<int>(info.length));
-            result.emplace("stop_count"s, static_cast<int>(info.num_of_stops));
-            result.emplace("unique_stop_count"s, static_cast<int>(info.uinque_stops));
-
-            request_to_output_.push_back(json::Node(result));
+            CollectBus(bus, id);
         }
 
         // And even stop!
@@ -236,16 +257,7 @@ void JsonReader::CollectOutput(json::Node request){
                 request_to_output_.push_back(GetErrorNode(id));
                 continue;
             }
-            json::Dict result;
-            json::Array buses;
-            const std::optional<std::set<std::string>>& bus_routes = transport_catalogue_.GetStopInfo(name);
-            for (auto bus_route : *bus_routes) {
-                buses.emplace_back(std::string{bus_route});
-            }
-            result.emplace("request_id"s, id);
-            result.emplace("buses"s, buses);
-
-            request_to_output_.push_back(json::Node(result));
+            CollectStop(name, id);
         }
         else{
             throw json::ParsingError("Invalid stat request.");
