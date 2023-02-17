@@ -146,7 +146,7 @@ KeyValueItemContext KeyItemContext::Value(Node::Value value) {
 }
 
 
-KeyItemContext KeyValueItemContext::Key(const string &key) {
+KeyItemContext KeyValueItemContext::Key(string key) {
     return builder_.Key(key);
 }
 
@@ -154,7 +154,7 @@ Builder& KeyValueItemContext::EndDict() {
     return builder_.EndDict();
 }
 
-ValueArrayItemContext ValueArrayItemContext::Value(Node::Value value) {
+ValueArrayItemContext ValueArrayItemContext::Value(const Node::Value& value) {
     return builder_.Value(value);
 }
 
@@ -170,7 +170,7 @@ Builder ValueArrayItemContext::EndArray() {
     return builder_.EndArray();
 }
 
-KeyItemContext DictItemContext::Key(const string &key) {
+KeyItemContext DictItemContext::Key(string key) {
     return builder_.Key(key);
 }
 
@@ -178,7 +178,7 @@ Builder &DictItemContext::EndDict() {
     return builder_.EndDict();
 }
 
-ValueArrayItemContext ArrayItemContext::Value(Node::Value value) {
+ValueArrayItemContext ArrayItemContext::Value(const Node::Value& value) {
     return builder_.Value(value);
 }
 
