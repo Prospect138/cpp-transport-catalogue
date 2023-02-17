@@ -141,7 +141,7 @@ DictItemContext KeyItemContext::StartDict() {
     return builder_.StartDict();
 }
 
-KeyValueItemContext KeyItemContext::Value(Node::Value value) {
+KeyValueItemContext KeyItemContext::Value(const Node::Value& value) {
     return builder_.Value(value);
 }
 
