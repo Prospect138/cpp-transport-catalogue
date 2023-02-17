@@ -7,7 +7,7 @@ namespace json{
 
 KeyItemContext Builder::Key(const std::string key) {
     if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && is_target_key_used_) {
-        target_key_ = key;
+        target_key_ = std::move(key);
         is_target_key_used_ = false;
     }
     else {
@@ -27,10 +27,9 @@ Builder& Builder::Value(Node::Value value) {
         is_root_created_ = true;
     }
     else if (nodes_stack_.back()->IsArray()) {
-        Node* targetValue = new Node{};
-        targetValue->GetValue() = move(value);
-        nodes_stack_.back()->AsArray().emplace_back(move(*targetValue));
-        delete targetValue;
+        Node targetValue = Node{};
+        targetValue.GetValue() = std::move(value);
+        nodes_stack_.back()->AsArray().emplace_back(move(targetValue));
     }
     else if (nodes_stack_.back()->IsDict() && !is_target_key_used_) {
         nodes_stack_.back()->AsDict()[target_key_].GetValue() = move(value);
