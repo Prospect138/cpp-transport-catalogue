@@ -28,19 +28,19 @@ public:
 
     void WriteInfo(std::ostream& out);
 
-    void AddStops(json::Array arr);
+    void AddStop(const json::Array& arr);
 
-    void AddBuses(json::Array arr);
+    void AddBus(const json::Array& arr);
 
     void AddToCatalog(json::Node node);
 
-    void ReadRenderSettings(json::Node node);
-
     void CollectMap(int id);
 
-    void CollectBus(const catalog::Bus* bus, int id);
-
     void CollectStop(const std::string& name, int id);
+
+    void CollectBus(catalog::Bus* bus, int id);
+
+    void ReadRenderSettings(json::Node node);
     
     void CollectOutput(json::Node node);
 

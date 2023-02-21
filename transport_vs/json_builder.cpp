@@ -5,9 +5,9 @@
 using namespace std;
 namespace json{
 
-KeyItemContext Builder::Key(const std::string key) {
+Builder::KeyItemContext Builder::Key(const std::string key) {
     if (!nodes_stack_.empty() && nodes_stack_.back()->IsDict() && is_target_key_used_) {
-        target_key_ = key;
+        target_key_ = std::move(key);
         is_target_key_used_ = false;
     }
     else {
@@ -16,21 +16,11 @@ KeyItemContext Builder::Key(const std::string key) {
     return {*this};
 }
 
-Builder& Builder::Value(Node::Value value) {
-    if (nodes_stack_.empty() && is_root_created_) {
-        throw logic_error("Error occurred while building value"s);
-    }
-
-    if (nodes_stack_.empty()) {
-        root_.GetValue() = value;
-        nodes_stack_.push_back(&root_);
-        is_root_created_ = true;
-    }
-    else if (nodes_stack_.back()->IsArray()) {
-        Node* targetValue = new Node{};
-        targetValue->GetValue() = move(value);
-        nodes_stack_.back()->AsArray().emplace_back(move(*targetValue));
-        delete targetValue;
+Builder& Builder::AddNodeToContainer(Node::Value value) {
+    if (nodes_stack_.back()->IsArray()) {
+        Node targetValue = Node{};
+        targetValue.GetValue() = std::move(value);
+        nodes_stack_.back()->AsArray().emplace_back(move(targetValue));
     }
     else if (nodes_stack_.back()->IsDict() && !is_target_key_used_) {
         nodes_stack_.back()->AsDict()[target_key_].GetValue() = move(value);
@@ -43,7 +33,23 @@ Builder& Builder::Value(Node::Value value) {
     return *this;
 }
 
-DictItemContext Builder::StartDict() {
+Builder& Builder::Value(Node::Value value) {
+    if (nodes_stack_.empty() && is_root_created_) {
+        throw logic_error("Error occurred while building value"s);
+    }
+
+    if (nodes_stack_.empty()) {
+        root_.GetValue() = value;
+        nodes_stack_.push_back(&root_);
+        is_root_created_ = true;
+    } else {
+        AddNodeToContainer(move(value));
+    }
+
+    return *this;
+}
+
+Builder::DictItemContext Builder::StartDict() {
     if (nodes_stack_.empty() && is_root_created_) {
         throw logic_error("Error occurred while building dict"s);
     }
@@ -51,26 +57,14 @@ DictItemContext Builder::StartDict() {
     if (nodes_stack_.empty()) {
         root_.GetValue() = Dict{};
         nodes_stack_.push_back(&root_);
-    }
-    else if (nodes_stack_.back()->IsArray()) {
-        Node targetValue{Dict{}};
-        nodes_stack_.back()->AsArray().push_back(targetValue);
-        nodes_stack_.push_back(&nodes_stack_.back()->AsArray().back());
-    }
-    else if (nodes_stack_.back()->IsDict() && !is_target_key_used_) {
-        Node targetValue{Dict{}};
-        nodes_stack_.back()->AsDict().insert({target_key_, targetValue});
-        nodes_stack_.push_back(&nodes_stack_.back()->AsDict().at(target_key_));
-        is_target_key_used_ = true;
-    }
-    else {
-        throw logic_error("Error occurred while building dict"s);
+    } else {
+        AddNodeToContainer(Dict{});
     }
 
     return DictItemContext{*this};
 }
 
-ArrayItemContext Builder::StartArray() {
+Builder::ArrayItemContext Builder::StartArray() {
     if (nodes_stack_.empty() && is_root_created_) {
         throw logic_error("Error occurred while building array"s);
     }
@@ -79,22 +73,10 @@ ArrayItemContext Builder::StartArray() {
         root_.GetValue() = Array{};
         nodes_stack_.push_back(&root_);
         is_root_created_ = true;
+    } else {
+        AddNodeToContainer(Array{});
     }
-    else if (nodes_stack_.back()->IsArray()) {
-        Node targetValue{Array {}};
-        nodes_stack_.back()->AsArray().push_back(targetValue);
-        nodes_stack_.push_back(&nodes_stack_.back()->AsArray().back());
 
-    }
-    else if (nodes_stack_.back()->IsDict() && !is_target_key_used_) {
-        Node targetValue{Array {}};
-        nodes_stack_.back()->AsDict().insert({target_key_, targetValue});
-        nodes_stack_.push_back(&nodes_stack_.back()->AsDict().at(target_key_));
-        is_target_key_used_ = true;
-    }
-    else {
-        throw logic_error("Error occurred while building array"s);
-    }
     return ArrayItemContext{*this};
 }
 
@@ -134,64 +116,64 @@ throw logic_error("Error occured while building JSON"s);
     
 }
 
-ArrayItemContext KeyItemContext::StartArray() {
+Builder::ArrayItemContext Builder::KeyItemContext::StartArray() {
     return builder_.StartArray();
 }
 
-DictItemContext KeyItemContext::StartDict() {
+Builder::DictItemContext Builder::KeyItemContext::StartDict() {
     return builder_.StartDict();
 }
 
-KeyValueItemContext KeyItemContext::Value(Node::Value value) {
+Builder::KeyValueItemContext Builder::KeyItemContext::Value(const Node::Value& value) {
     return builder_.Value(value);
 }
 
 
-KeyItemContext KeyValueItemContext::Key(const string &key) {
-    return builder_.Key(key);
+Builder::KeyItemContext Builder::KeyValueItemContext::Key(string key) {
+    return builder_.Key(std::move(key));
 }
 
-Builder& KeyValueItemContext::EndDict() {
+Builder& Builder::KeyValueItemContext::EndDict() {
     return builder_.EndDict();
 }
 
-ValueArrayItemContext ValueArrayItemContext::Value(Node::Value value) {
-    return builder_.Value(value);
+Builder::ValueArrayItemContext Builder::ValueArrayItemContext::Value(const Node::Value& value) {
+    return builder_.Value(std::move(value));
 }
 
-DictItemContext ValueArrayItemContext::StartDict() {
+Builder::DictItemContext Builder::ValueArrayItemContext::StartDict() {
     return builder_.StartDict();
 }
 
-ArrayItemContext ValueArrayItemContext::StartArray() {
+Builder::ArrayItemContext Builder::ValueArrayItemContext::StartArray() {
     return builder_.StartArray();
 }
 
-Builder ValueArrayItemContext::EndArray() {
+Builder Builder::ValueArrayItemContext::EndArray() {
     return builder_.EndArray();
 }
 
-KeyItemContext DictItemContext::Key(const string &key) {
-    return builder_.Key(key);
+Builder::KeyItemContext Builder::DictItemContext::Key(string key) {
+    return builder_.Key(std::move(key));
 }
 
-Builder &DictItemContext::EndDict() {
+Builder& Builder::DictItemContext::EndDict() {
     return builder_.EndDict();
 }
 
-ValueArrayItemContext ArrayItemContext::Value(Node::Value value) {
-    return builder_.Value(value);
+Builder::ValueArrayItemContext Builder::ArrayItemContext::Value(const Node::Value& value) {
+    return builder_.Value(std::move(value));
 }
 
-DictItemContext ArrayItemContext::StartDict() {
+Builder::DictItemContext Builder::ArrayItemContext::StartDict() {
     return builder_.StartDict();
 }
 
-ArrayItemContext ArrayItemContext::StartArray() {
+Builder::ArrayItemContext Builder::ArrayItemContext::StartArray() {
     return builder_.StartArray();
 }
 
-Builder& ArrayItemContext::EndArray() {
+Builder& Builder::ArrayItemContext::EndArray() {
     return builder_.EndArray();
 }
 

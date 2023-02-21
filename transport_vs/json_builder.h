@@ -4,20 +4,22 @@
 
 namespace json {
 
-class KeyItemContext;
-class KeyValueItemContext;
-class ValueArrayItemContext;
-class DictItemContext;
-class ArrayItemContext;
-
 class Builder {
 public:
+
+    class KeyItemContext;
+    class KeyValueItemContext;
+    class ValueArrayItemContext;
+    class DictItemContext;
+    class ArrayItemContext;
+
     KeyItemContext Key(std::string key);
     Builder& Value(Node::Value value);
     DictItemContext StartDict();
     Builder& EndDict();
     ArrayItemContext StartArray();
     Builder& EndArray();
+    Builder& AddNodeToContainer(Node::Value value);
 
     json::Node Build();
 
@@ -29,34 +31,34 @@ private:
     std::vector<Node*> nodes_stack_;
 };
 
-class KeyItemContext {
+class Builder::KeyItemContext {
 public:
     KeyItemContext(Builder& builder) : builder_(builder) {}
 
     ArrayItemContext StartArray();
     DictItemContext StartDict();
-    KeyValueItemContext Value(Node::Value value);
+    KeyValueItemContext Value(const Node::Value& value);
 
 private:
     Builder& builder_;
 };
 
-class KeyValueItemContext {
+class Builder::KeyValueItemContext {
 public:
     KeyValueItemContext(Builder& builder) : builder_(builder) {}
 
-    KeyItemContext Key(const std::string& key);
+    KeyItemContext Key(std::string key);
     Builder& EndDict();
 
 private:
     Builder& builder_;
 };
 
-class ValueArrayItemContext {
+class Builder::ValueArrayItemContext {
 public:
     ValueArrayItemContext(Builder& builder) : builder_(builder) {}
 
-    ValueArrayItemContext Value(Node::Value value);
+    ValueArrayItemContext Value(const Node::Value& value);
     DictItemContext StartDict();
     ArrayItemContext StartArray();
     Builder EndArray();
@@ -65,28 +67,30 @@ private:
     Builder& builder_;
 };
 
-class DictItemContext {
+class Builder::DictItemContext {
 public:
     DictItemContext(Builder& builder) : builder_(builder) {}
 
-    KeyItemContext Key(const std::string &key);
+    Builder::KeyItemContext Key(std::string key);
     Builder& EndDict();
 
 private:
     Builder& builder_;
 };
 
-class ArrayItemContext {
+class Builder::ArrayItemContext {
 public:
     ArrayItemContext(Builder& builder) : builder_(builder) {}
 
-    ValueArrayItemContext Value(Node::Value value);
-    DictItemContext StartDict();
+    Builder::ValueArrayItemContext Value(const Node::Value& value);
+    Builder::DictItemContext StartDict();
     ArrayItemContext StartArray();
     Builder& EndArray();
 
 private:
     Builder& builder_;
 };
+
+
 
 } // namespace json

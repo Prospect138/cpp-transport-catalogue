@@ -51,7 +51,7 @@ void JsonReader::ParseJson(){
     }
 }
 
-void JsonReader::AddStops(json::Array arr){
+void JsonReader::AddStop(const json::Array& arr){
     for (auto& element : arr){
         //Looks on each element as on map
         const json::Dict& dict = element.AsDict();
@@ -104,7 +104,7 @@ void JsonReader::AddStops(json::Array arr){
     }
 }
 
-void JsonReader::AddBuses(json::Array arr){
+void JsonReader::AddBus(const json::Array& arr){
     for (auto& element : arr){
         //Looks on each element as on map
         const json::Dict& dict = element.AsDict();
@@ -150,140 +150,25 @@ void JsonReader::AddBuses(json::Array arr){
     }
 }
 
-
 //Adds data from Base_Request part of input;
 void JsonReader::AddToCatalog(json::Node node) {
     if (!node.IsArray()) {
         throw json::ParsingError("Incorrect input data type");
     }
-
     // Представляем ноду массивом
     const json::Array& arr = node.AsArray();
 
-    AddStops(arr);
-
-    // First iteratinon over node only for add stops
-    //for (auto& element : arr){
-    //    //Looks on each element as on map
-    //    const json::Dict& dict = element.AsDict();
-    //    const auto type_i = dict.find("type"s);
-    //    if (type_i == dict.end()) {
-    //        continue;
-    //    }
-    //    // Query type is stop : 
-    //    if (type_i->second == "Stop"s) {
-    //        // This is a stop to push in catalog
-    //        catalog::Stop stop;
-    //        std::vector<std::pair<std::string, double>> dst_info;
-//
-    //        if (const auto name_i = dict.find("name"s); name_i != dict.end() && name_i->second.IsString()) {
-    //            stop.stop_name = name_i->second.AsString();
-    //        } 
-    //        else {
-    //            continue;
-    //        }
- //
-    //        if (const auto lat_i = dict.find("latitude"s); lat_i != dict.end() && lat_i->second.IsDouble()) {
-    //            stop.coordinates.lat = lat_i->second.AsDouble();
-    //        } 
-    //        else {
-    //            continue;
-    //        }
- //
-    //        if (const auto lng_i = dict.find("longitude"s); lng_i != dict.end() && lng_i->second.IsDouble()) {
-    //            stop.coordinates.lng = lng_i->second.AsDouble();
-    //        } 
-    //        else {
-    //            continue;
-    //        }
-//
-    //        const auto dist_i = dict.find("road_distances"s);
-//
-    //        if (dist_i != dict.end() && !(dist_i->second.IsDict())) {
-    //            continue;
-    //        }// проверка, что это словарь. он необязательный для остановки.
-    //        for (const auto& [other_name, other_dist] : dist_i->second.AsDict()) {
-    //            if (!other_dist.IsInt()) {
-    //                continue; 
-    //            }
-    //            dst_info.push_back({other_name, static_cast<size_t>(other_dist.AsInt())});
-    //        }
-//
-    //        transport_catalogue_.AddStop(stop.stop_name, stop.coordinates.lat, 
-    //        stop.coordinates.lng, dst_info);
-    //    }
-    //}
-
-    AddBuses(arr);
-
-    //second iteration is about adding buses with existing stops
-    //for (auto& element : arr){
-    //    //Looks on each element as on map
-    //    const json::Dict& dict = element.AsDict();
-    //    const auto type_i = dict.find("type"s);
-    //    if (type_i == dict.end()) {
-    //        continue;
-    //    }
-    //    // Query type is stop : 
-    //    if (type_i->second == "Bus"s) {
-    //        // Fomring struct to send on catalog's method
-    //        catalog::BusQuery bus;
-//
-    //        if (const auto name_i = dict.find("name"s); name_i != dict.end() && name_i->second.IsString()) {
-    //            bus.route_name = name_i->second.AsString();
-    //        } 
-    //        else {
-    //            continue;
-    //        }
-//
-    //        if (const auto route_i = dict.find("is_roundtrip"s); route_i != dict.end() && route_i->second.IsBool()) {
-    //            bus.type = route_i->second.AsBool() ? catalog::RouteType::ROUND : catalog::RouteType::NOT_ROUND;
-    //        } 
-    //        else{
-    //            continue;
-    //        }
-//
-    //        const auto stops_i = dict.find("stops"s);
-    //        if (stops_i != dict.end() && !(stops_i->second.IsArray())) {
-    //            continue;
-    //        }
-    //        for (const auto& stop_name : stops_i->second.AsArray()) {
-    //            if (!stop_name.IsString()) {
-    //                continue;
-    //            }
-    //            bus.stops_list.emplace_back(stop_name.AsString());
-    //        }
-//
-    //        transport_catalogue_.AddBus(bus);
-//
-    //    } else {
-    //        continue;
-    //    }
-    //}
+    AddStop(arr);
+    AddBus(arr);
 }
 
 void JsonReader::CollectMap(int id){
-
     renderer::MapRenderer svg_map(GetParsedRenderSettings());
     std::ostringstream stream;
     svg_map.RenderSvgMap(transport_catalogue_, stream);
     json::Dict result;
     result.emplace("request_id"s, id);
     result.emplace("map"s, std::move(stream.str()));
-    request_to_output_.push_back(json::Node(result));
-
-}
-
-void JsonReader::CollectBus(const catalog::Bus* bus, int id){
-
-    catalog::BusInfo info = transport_catalogue_.GetBusInfo(*bus);
-
-    json::Dict result;
-    result.emplace("request_id"s, id);
-    result.emplace("curvature"s, info.curvature);
-    result.emplace("route_length"s, static_cast<int>(info.length));
-    result.emplace("stop_count"s, static_cast<int>(info.num_of_stops));
-    result.emplace("unique_stop_count"s, static_cast<int>(info.uinque_stops));
     request_to_output_.push_back(json::Node(result));
 }
 
@@ -296,6 +181,20 @@ void JsonReader::CollectStop(const std::string& name, int id){
     }
     result.emplace("request_id"s, id);
     result.emplace("buses"s, buses);
+
+    request_to_output_.push_back(json::Node(result));
+}
+
+void JsonReader::CollectBus(catalog::Bus* bus, int id){
+    catalog::BusInfo info = transport_catalogue_.GetBusInfo(*bus);
+
+    json::Dict result;
+    result.emplace("request_id"s, id);
+    result.emplace("curvature"s, info.curvature);
+    result.emplace("route_length"s, static_cast<int>(info.length));
+    result.emplace("stop_count"s, static_cast<int>(info.num_of_stops));
+    result.emplace("unique_stop_count"s, static_cast<int>(info.uinque_stops));
+
     request_to_output_.push_back(json::Node(result));
 }
 
@@ -331,7 +230,6 @@ void JsonReader::CollectOutput(json::Node request){
         //Parse map
         if ( type == "Map"s) {
             CollectMap(id);
-
             continue;
         }
 
@@ -350,7 +248,6 @@ void JsonReader::CollectOutput(json::Node request){
                 request_to_output_.push_back(GetErrorNode(id));
                 continue;
             }
-
             CollectBus(bus, id);
         }
 
@@ -360,7 +257,7 @@ void JsonReader::CollectOutput(json::Node request){
                 request_to_output_.push_back(GetErrorNode(id));
                 continue;
             }
-
+            CollectStop(name, id);
         }
         else{
             throw json::ParsingError("Invalid stat request.");
@@ -378,53 +275,18 @@ void JsonReader::ReadRenderSettings(json::Node node) {
     raw_render_settings_ = node.AsDict();
 
 }
-
-// Read parsed render setiings from readers field to costruct renderer
 renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
 
     renderer::RendererSettings settings;
 
-    if (const auto width_i = raw_render_settings_.find("width"s); width_i != raw_render_settings_.end() && width_i->second.IsDouble()) {
-        settings.width = width_i->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild width data.");
-    }
-
-    if (const auto height_i = raw_render_settings_.find("height"s); height_i != raw_render_settings_.end() && height_i->second.IsDouble()) {
-        settings.height = height_i->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild height data.");
-    }
-
-    if (const auto padd_i = raw_render_settings_.find("padding"s); padd_i != raw_render_settings_.end() && padd_i->second.IsDouble()) {
-        settings.padding = padd_i->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild padding data.");
-    }
-
-    if (const auto field_iter = raw_render_settings_.find("line_width"s); field_iter != raw_render_settings_.end() && field_iter->second.IsDouble()) {
-        settings.line_width = field_iter->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild line width data.");
-    }
-
-    if (const auto field_iter = raw_render_settings_.find("stop_radius"s); field_iter != raw_render_settings_.end() && field_iter->second.IsDouble()) {
-        settings.stop_radius = field_iter->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild stop radius data.");
-    }
-
-    if (const auto field_iter = raw_render_settings_.find("bus_label_font_size"s); field_iter != raw_render_settings_.end() && field_iter->second.IsInt()) {
-        settings.bus_label_font_size = field_iter->second.AsInt();
-    } 
-    else{
-        throw json::ParsingError("Invaild bus label font size data.");
-    }
+    settings.width = raw_render_settings_.at("width"s).AsDouble();
+    settings.height = raw_render_settings_.at("height"s).AsDouble();
+    settings.padding = raw_render_settings_.at("padding"s).AsDouble();
+    settings.line_width = raw_render_settings_.at("line_width"s).AsDouble();
+    settings.stop_radius = raw_render_settings_.at("stop_radius"s).AsDouble();
+    settings.bus_label_font_size = raw_render_settings_.at("bus_label_font_size"s).AsInt();
+    settings.stop_label_font_size = raw_render_settings_.at("stop_label_font_size"s).AsInt();
+    settings.underlayer_width = raw_render_settings_.at("underlayer_width"s).AsDouble();
 
     if (const auto field_iter = raw_render_settings_.find("bus_label_offset"s); field_iter != raw_render_settings_.end() && field_iter->second.IsArray()) {
         json::Array arr = field_iter->second.AsArray();
@@ -436,19 +298,12 @@ renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
         throw json::ParsingError("Invaild bus label font offset data.");
     }
 
-    if (const auto field_iter = raw_render_settings_.find("stop_label_font_size"s); field_iter != raw_render_settings_.end() && field_iter->second.IsInt()) {
-        settings.stop_label_font_size = field_iter->second.AsInt();
-    } 
-    else{
-        throw json::ParsingError("Invaild stop label font size data.");
-    }
-
     if (const auto field_iter = raw_render_settings_.find("stop_label_offset"s); field_iter != raw_render_settings_.end() && field_iter->second.IsArray()) {
         json::Array arr = field_iter->second.AsArray();
         if (arr.size() != 2) throw json::ParsingError("Invaild stop label font offset data.");
         settings.stop_label_offset.x = arr[0].AsDouble();
         settings.stop_label_offset.y = arr[1].AsDouble();
-    } \
+    } 
     else{
         throw json::ParsingError("Invaild stop label font offset data.");
     }
@@ -458,18 +313,10 @@ renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
         if (std::holds_alternative<std::monostate>(color)) {
             throw json::ParsingError("Invaild underlayer color data.");
         }
-
         settings.underlayer_color = color;
     } 
     else{
         throw json::ParsingError("Invaild underlayer color data.");
-    }
-
-    if (const auto field_iter = raw_render_settings_.find("underlayer_width"s); field_iter != raw_render_settings_.end() && field_iter->second.IsDouble()) {
-        settings.underlayer_width = field_iter->second.AsDouble();
-    } 
-    else{
-        throw json::ParsingError("Invaild underlayer width data.");
     }
 
     if (const auto field_iter = raw_render_settings_.find("color_palette"s); field_iter != raw_render_settings_.end() && field_iter->second.IsArray()) {
@@ -487,15 +334,6 @@ renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
     }
 
     return settings;
-}
-
-inline json::Node GetErrorNode(int id) {
-    using namespace std::literals;
-    json::Dict result;
-    result.emplace("request_id"s, id);
-    result.emplace("error_message"s, "not found"s);
-
-    return {result};
 }
 
 svg::Color ParseColor(const json::Node& node){
