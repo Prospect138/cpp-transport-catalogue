@@ -35,7 +35,7 @@ public:
 
     ArrayItemContext StartArray();
     DictItemContext StartDict();
-    KeyValueItemContext Value(const Node::Value& value);
+    KeyValueItemContext Value(Node::Value value);
 
 private:
     Builder& builder_;
@@ -45,7 +45,7 @@ class KeyValueItemContext {
 public:
     KeyValueItemContext(Builder& builder) : builder_(builder) {}
 
-    KeyItemContext Key(std::string key);
+    KeyItemContext Key(const std::string& key);
     Builder& EndDict();
 
 private:
@@ -56,7 +56,7 @@ class ValueArrayItemContext {
 public:
     ValueArrayItemContext(Builder& builder) : builder_(builder) {}
 
-    ValueArrayItemContext Value(const Node::Value& value);
+    ValueArrayItemContext Value(Node::Value value);
     DictItemContext StartDict();
     ArrayItemContext StartArray();
     Builder EndArray();
@@ -69,7 +69,7 @@ class DictItemContext {
 public:
     DictItemContext(Builder& builder) : builder_(builder) {}
 
-    KeyItemContext Key(std::string key);
+    KeyItemContext Key(const std::string &key);
     Builder& EndDict();
 
 private:
@@ -80,7 +80,7 @@ class ArrayItemContext {
 public:
     ArrayItemContext(Builder& builder) : builder_(builder) {}
 
-    ValueArrayItemContext Value(const Node::Value& value);
+    ValueArrayItemContext Value(Node::Value value);
     DictItemContext StartDict();
     ArrayItemContext StartArray();
     Builder& EndArray();
