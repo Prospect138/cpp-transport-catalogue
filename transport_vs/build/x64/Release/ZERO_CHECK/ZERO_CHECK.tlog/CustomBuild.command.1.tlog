@@ -1,0 +1,10 @@
+^C:\USERS\USER\DOCUMENTS\TRANSPORT_VS\BUILD\CMAKEFILES\9C297ABD8CD7140AA525D34AD0E319D1\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/User/Documents/transport_vs -BC:/Users/User/Documents/transport_vs/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/User/Documents/transport_vs/build/transport_vs.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
