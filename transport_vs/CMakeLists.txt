@@ -10,6 +10,7 @@ json_reader.cpp
 map_renderer.cpp
 svg.cpp
 json_builder.cpp
+transport_router.cpp
 )
 
 set(HDR
@@ -21,6 +22,10 @@ json_reader.h
 map_renderer.h
 svg.h
 json_builder.h
+transport_router.h
+graph.h
+ranges.h
+router.h
 )
 
 add_executable(a ${SRC} ${HDR})

@@ -1,5 +1,12 @@
 #include "domain.h"
 
+namespace transport_catalogue::catalog{
+
+double GetMetrMinFromKmH(double km_h) {
+    return km_h * (1000. / 60.);
+}
+
+}
 /*
  * В этом файле вы можете разместить классы/структуры, которые являются частью предметной области
  * (domain) вашего приложения и не зависят от транспортного справочника. Например Автобусные

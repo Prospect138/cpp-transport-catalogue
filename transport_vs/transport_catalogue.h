@@ -22,14 +22,14 @@ struct BusQuery{
 namespace detail {
     
     struct StopsHasher{
-    size_t operator()(const std::pair<transport_catalogue::catalog::Stop*, transport_catalogue::catalog::Stop*> st) const{
-        size_t str1 = h1(st.first -> stop_name);
-        size_t str2 = h2(st.second -> stop_name);
-        return str1 + str2 * 42;
-    }
-    std::hash<std::string> h1;
-    std::hash<std::string> h2;
-};
+        size_t operator()(const std::pair<const transport_catalogue::catalog::Stop*,const transport_catalogue::catalog::Stop*> st) const{
+            size_t str1 = h1(st.first -> stop_name);
+            size_t str2 = h2(st.second -> stop_name);
+            return str1 + str2 * 42;
+        }
+        std::hash<std::string> h1;
+        std::hash<std::string> h2;
+    };
 
 }
 
@@ -45,6 +45,10 @@ public:
     const std::map<std::string_view, const Bus*> GetBuses() const;
     const std::map<std::string_view, const Stop*> GetStops() const;
     const std::set<std::string_view>& GetBusesForStop(std::string_view stop) const;
+    int GetCalculateDistance(const Stop* first_route, const Stop* second_route);
+    Coordinates GetCoordinatesByStop(std::string_view stop_name) const;
+    const std::deque<Stop> GetAllStops() const;
+    const std::deque<Bus> GetAllBus() const;
 
 
 private:
@@ -52,9 +56,10 @@ private:
     std::deque<Bus> routs_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
     std::unordered_map<std::string_view, Bus*> busname_to_bus_;
-    std::unordered_map<std::pair<Stop*, Stop*>, double, detail::StopsHasher> stop_stop_to_dist_;
+    std::unordered_map<std::pair<const Stop*, const Stop*>, double, detail::StopsHasher> stop_stop_to_dist_;
     std::unordered_map<std::string_view, std::set<std::string_view>> stop_and_buses_;
 
+    int stop_ids_ = 0;
 };
 
 }

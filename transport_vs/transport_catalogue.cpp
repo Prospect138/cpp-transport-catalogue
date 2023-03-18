@@ -9,10 +9,12 @@ namespace transport_catalogue::catalog {
 
 void TransportCatalogue::AddStop(std::string_view stop_name, const double lat, const double lng,
 const std::vector<std::pair<std::string, double>>& dst_info){
+
     if (!stopname_to_stop_.count(stop_name)){
-        Stop the_stop{std::string{stop_name}, lat, lng}; 
+        Stop the_stop{std::string{stop_name}, lat, lng, stop_ids_}; 
         stops_.push_back(std::move(the_stop));
         stopname_to_stop_[stops_.back().stop_name] = &stops_.back();
+        ++stop_ids_;
     }
     else {
         stopname_to_stop_[stop_name] -> coordinates.lat = lat;
@@ -28,12 +30,17 @@ const std::vector<std::pair<std::string, double>>& dst_info){
         }
         else {
             Stop st2;
+            st2.id = stop_ids_;
+
+            ++ stop_ids_;
+
             st2.stop_name = key;
             stops_.push_back(std::move(st2));
             stopname_to_stop_[stops_.back().stop_name] = &stops_.back();
             stop_stop_to_dist_[{st1, &stops_.back()}] = value;
         }
     }
+
 }
 
 // Find pointer to stop struct with string 
@@ -55,7 +62,7 @@ void TransportCatalogue::AddBus(const BusQuery& query){
         bus.rout.push_back(that_stop);
     }
     if (bus.type == RouteType::NOT_ROUND){
-        for (int i = bus.rout.size()-2; i >= 0; --i){
+        for (int i = static_cast<int>(bus.rout.size()-2); i >= 0; --i){
             bus.rout.push_back(bus.rout[i]);
         }
     }
@@ -147,4 +154,30 @@ const std::map<std::string_view, const Stop*> TransportCatalogue::GetStops() con
     return result;
 }
 
+int TransportCatalogue::GetCalculateDistance(const Stop* first_route,
+                                             const Stop* second_route) {
+
+    if (stop_stop_to_dist_.count({first_route, second_route}) != 0) {
+        return static_cast<int>(stop_stop_to_dist_[{first_route, second_route}]);
+    }
 }
+
+Coordinates TransportCatalogue::GetCoordinatesByStop(std::string_view stop_name) const {
+    Coordinates result{};
+
+    auto search = stopname_to_stop_.find(stop_name);
+    if (search != stopname_to_stop_.end()) {
+        result = search->second->coordinates;
+        return result;
+    }
+    return result;
+}
+
+const std::deque<Stop> TransportCatalogue::GetAllStops() const {
+    return stops_;
+}
+
+const std::deque<Bus> TransportCatalogue::GetAllBus() const{
+    return routs_;
+}
+} //namespace transport_catalogue::catalog

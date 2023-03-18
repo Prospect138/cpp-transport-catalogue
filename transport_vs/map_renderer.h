@@ -3,6 +3,8 @@
 #include "svg.h"
 #include "geo.h"
 #include "transport_catalogue.h"
+#include "transport_router.h"
+#include "graph.h"
 
 #include <algorithm>
 #include <map>

@@ -4,13 +4,8 @@ using namespace std::literals;
 
 namespace transport_catalogue::json_reader {
 
-// Base function call other methods;
-void JsonReader::ProcessInput(std::istream& input){
-    JsonReader::ReadRawJson(input);
-    JsonReader::ParseJson();
-}
-
 // Write parsed info to out
+// For now write info os the only way to get output from the class
 void JsonReader::WriteInfo(std::ostream& out){
     json::Array output_array;
     for (json::Node element : request_to_output_){
@@ -19,6 +14,12 @@ void JsonReader::WriteInfo(std::ostream& out){
     json::Print(json::Document{json::Builder{}.Value(output_array).Build()}, out);
 }
 
+// Base function call other methods;
+// We process the whole json at once so we proccess it right here in JsonReader class;
+void JsonReader::ProcessInput(std::istream& input){
+    JsonReader::ReadRawJson(input);
+    JsonReader::ParseJson();
+}
 
 // Reads Raw Json and put it to obj
 void JsonReader::ReadRawJson(std::istream& input){
@@ -44,9 +45,24 @@ void JsonReader::ParseJson(){
             else if (key == "render_settings"){
                 ReadRenderSettings(raw_map.AsDict().at(key));
             }
+            else if (key == "routing_settings"){
+                AddRoutingSettings(raw_map.AsDict().at(key));
+            }
             else if (key == "stat_requests"){
                 CollectOutput(raw_map.AsDict().at(key));
             }
+            //сюда воткнуть [routing_settings: {bus_wait_time, bus_velocity}]
+        }
+    }
+}
+
+void JsonReader::AddRoutingSettings(const json::Node &root){
+    for (auto [key, value] : root.AsDict()){
+        if (key == "bus_wait_time"){
+            bus_wait_time_ = value.AsInt();
+        }
+        else if (key == "bus_velocity"){
+            bus_velocity_ = value.AsInt();
         }
     }
 }
@@ -90,7 +106,7 @@ void JsonReader::AddStop(const json::Array& arr){
 
             if (dist_i != dict.end() && !(dist_i->second.IsDict())) {
                 continue;
-            }// проверка, что это словарь. он необязательный для остановки.
+            }
             for (const auto& [other_name, other_dist] : dist_i->second.AsDict()) {
                 if (!other_dist.IsInt()) {
                     continue; 
@@ -172,6 +188,63 @@ void JsonReader::CollectMap(int id){
     request_to_output_.push_back(json::Node(result));
 }
 
+void JsonReader::CollectRout(int id, const json::Dict& request_fields){
+
+    json::Array out;
+
+    std::string stop_from;
+    std::string stop_to;
+
+    if (const auto from_i = request_fields.find("from"s); from_i != request_fields.end() && from_i->second.IsString()) {
+        stop_from = from_i->second.AsString();
+    }
+
+    if (const auto to_i = request_fields.find("to"s); to_i != request_fields.end()){
+        stop_to = to_i -> second.AsString();
+    }
+
+    int id_from = transport_catalogue_.FindStop(stop_from) -> id;
+    int id_to = transport_catalogue_.FindStop(stop_to) -> id;
+
+    auto get_find_route = router_.GetRouteStat(id_from, id_to);
+
+    if (get_find_route == std::nullopt) {
+        json::Node dict_node_stop{json::Dict{{"request_id"s,    id},
+                                             {"error_message"s, "not found"s}}};
+        request_to_output_.push_back({dict_node_stop});
+        return;
+    }
+
+    json::Array items;
+
+    using namespace transport_catalogue::catalog;
+
+    for (const auto &get_f_r : get_find_route -> items) {
+        json::Dict dict;
+        if(std::holds_alternative<RoutStat::ItemsWait>(get_f_r)) {
+            auto it = std::get<RoutStat::ItemsWait>(get_f_r);
+            dict.insert({"stop_name"s, it.stop_name});
+            dict.insert({"time"s, it.time});
+            dict.insert({"type"s, it.type});
+
+        } else if (std::holds_alternative<RoutStat::ItemsBus>(get_f_r)) {
+            auto it = std::get<RoutStat::ItemsBus>(get_f_r);
+            dict.insert({"bus"s, it.bus});
+            dict.insert({"span_count"s, static_cast<int>(it.span_count)});
+            dict.insert({"time"s, it.time});
+            dict.insert({"type"s, it.type});
+
+        }
+        items.push_back(dict);
+    }
+    json::Dict d1;
+    d1.insert({"item", items});
+    d1.insert({"request_id", id});
+    d1.insert({"total_time", get_find_route -> total_time});
+
+    request_to_output_.push_back(d1);
+}
+
 void JsonReader::CollectStop(const std::string& name, int id){
     json::Dict result;
     json::Array buses;
@@ -205,6 +278,7 @@ void JsonReader::CollectOutput(json::Node request){
     }
     const json::Array& arr = request.AsArray();
 
+
     // Iterating over request array
     for (auto& element : arr){
         if (!element.IsDict()) {
@@ -233,6 +307,19 @@ void JsonReader::CollectOutput(json::Node request){
             continue;
         }
 
+        //or rout
+        else if (type == "Route"s){
+
+            if (router_.GetGraphIsNoInit()) { // If graph in router is uninitialized
+                router_.settings_.bus_velocity_ = bus_velocity_;
+                router_.settings_.bus_wait_time_ = bus_wait_time_;
+                router_.CreateGraph(transport_catalogue_); // Create it
+            }
+            CollectRout(id, request_fields); //And then parse request fields
+            continue;
+        }
+
+        //if type is not a map or rout, then we can parse name
         std::string name;
         if (const auto name_i = request_fields.find("name"s); name_i != request_fields.end() && name_i->second.IsString()) {
             name = name_i->second.AsString();
@@ -240,8 +327,8 @@ void JsonReader::CollectOutput(json::Node request){
         else {
             throw json::ParsingError("Invalid field in request' node");
         }
-
-        // Or bus
+        // and then with name parse:
+        // Bus
         if ( type == "Bus"s) {
             catalog::Bus* bus = transport_catalogue_.FindBus(name);
             if (!bus){
@@ -259,6 +346,7 @@ void JsonReader::CollectOutput(json::Node request){
             }
             CollectStop(name, id);
         }
+
         else{
             throw json::ParsingError("Invalid stat request.");
         } 
@@ -334,6 +422,15 @@ renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
     }
 
     return settings;
+}
+
+inline json::Node GetErrorNode(int id) {
+    using namespace std::literals;
+    json::Dict result;
+    result.emplace("request_id"s, id);
+    result.emplace("error_message"s, "not found"s);
+
+    return {result};
 }
 
 svg::Color ParseColor(const json::Node& node){
