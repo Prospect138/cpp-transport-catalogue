@@ -1,0 +1,3 @@
+C:/Users/User/cpp-transport-catalogue/transport_vs/build/CMakeFiles/a.dir
+C:/Users/User/cpp-transport-catalogue/transport_vs/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/User/cpp-transport-catalogue/transport_vs/build/CMakeFiles/ZERO_CHECK.dir

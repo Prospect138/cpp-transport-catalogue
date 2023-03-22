@@ -9,7 +9,7 @@ void TransportRouter::CreateGraph(TransportCatalogue& catalog) {
     
     id_for_stops.resize(catalog.GetStops().size());
 
-    for(const auto bus : catalog.GetAllBus()) {
+    for(const Bus& bus : catalog.GetAllBus()) {
 
         for (auto it_from = bus.rout.begin(); it_from != bus.rout.end(); ++it_from) {
             const Stop* stop_from = *it_from;
@@ -29,11 +29,12 @@ void TransportRouter::CreateGraph(TransportCatalogue& catalog) {
         }
     }
     opt_graph_ = std::move(graph);
+    up_router_ = std::make_unique<graph::Router<double>>(opt_graph_.value());
 }
 
 std::optional<RoutStat> TransportRouter::GetRouteStat(size_t id_stop_from, size_t id_stop_to) const {
 
-    const OptRouteInfo opt_route_info = GetRouter()->BuildRoute(id_stop_from, id_stop_to);
+    const OptRouteInfo opt_route_info = up_router_->BuildRoute(id_stop_from, id_stop_to);
 
     if(! opt_route_info.has_value()) {
         return std::nullopt;
@@ -54,15 +55,8 @@ std::optional<RoutStat> TransportRouter::GetRouteStat(size_t id_stop_from, size_
     return RoutStat{total_time, items};
 }
 
-bool TransportRouter::GetGraphIsNoInit() const {
+bool TransportRouter::IsSomething() const {
     return ! opt_graph_.has_value();
 }
 
-const std::unique_ptr<graph::Router<double>>& TransportRouter::GetRouter() const {
-    if(! up_router_ ) {
-        up_router_ = std::make_unique<graph::Router<double>>(opt_graph_.value());
-    }
-    return up_router_;
-}
-
-}
+} //namespace transport_router

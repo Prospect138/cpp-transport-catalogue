@@ -31,7 +31,7 @@ public:
     RoutingSettings settings_;
 
     // Граф не создан
-    bool GetGraphIsNoInit() const;
+    bool IsSomething() const;
 
 private:
     // дополнительная информация о ребре
@@ -48,11 +48,8 @@ private:
     // граф
     std::optional<graph::DirectedWeightedGraph<double>> opt_graph_;
 
-    // создает и возвращает маршрутизатор если его еще нет
-    const std::unique_ptr<graph::Router<double>>& GetRouter() const;
-
     // маршрутизатор
-    mutable std::unique_ptr<graph::Router<double>> up_router_;
+    std::unique_ptr<graph::Router<double>> up_router_;
 };
 
 } //namespace transport_router;

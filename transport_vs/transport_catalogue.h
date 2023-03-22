@@ -47,8 +47,8 @@ public:
     const std::set<std::string_view>& GetBusesForStop(std::string_view stop) const;
     int GetCalculateDistance(const Stop* first_route, const Stop* second_route);
     Coordinates GetCoordinatesByStop(std::string_view stop_name) const;
-    const std::deque<Stop> GetAllStops() const;
-    const std::deque<Bus> GetAllBus() const;
+    const std::deque<Stop>& GetAllStops() const;
+    const std::deque<Bus>& GetAllBus() const;
 
 
 private:

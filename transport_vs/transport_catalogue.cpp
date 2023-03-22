@@ -160,6 +160,7 @@ int TransportCatalogue::GetCalculateDistance(const Stop* first_route,
     if (stop_stop_to_dist_.count({first_route, second_route}) != 0) {
         return static_cast<int>(stop_stop_to_dist_[{first_route, second_route}]);
     }
+    else return 0;
 }
 
 Coordinates TransportCatalogue::GetCoordinatesByStop(std::string_view stop_name) const {
@@ -173,11 +174,11 @@ Coordinates TransportCatalogue::GetCoordinatesByStop(std::string_view stop_name)
     return result;
 }
 
-const std::deque<Stop> TransportCatalogue::GetAllStops() const {
+const std::deque<Stop>& TransportCatalogue::GetAllStops() const {
     return stops_;
 }
 
-const std::deque<Bus> TransportCatalogue::GetAllBus() const{
+const std::deque<Bus>& TransportCatalogue::GetAllBus() const{
     return routs_;
 }
 } //namespace transport_catalogue::catalog

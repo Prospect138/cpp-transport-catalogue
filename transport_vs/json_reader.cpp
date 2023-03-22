@@ -237,12 +237,12 @@ void JsonReader::CollectRout(int id, const json::Dict& request_fields){
         }
         items.push_back(dict);
     }
-    json::Dict d1;
-    d1.insert({"item", items});
-    d1.insert({"request_id", id});
-    d1.insert({"total_time", get_find_route -> total_time});
+    json::Dict dict;
+    dict.insert({"item", items});
+    dict.insert({"request_id", id});
+    dict.insert({"total_time", get_find_route -> total_time});
 
-    request_to_output_.push_back(d1);
+    request_to_output_.push_back(dict);
 }
 
 void JsonReader::CollectStop(const std::string& name, int id){
@@ -310,7 +310,7 @@ void JsonReader::CollectOutput(json::Node request){
         //or rout
         else if (type == "Route"s){
 
-            if (router_.GetGraphIsNoInit()) { // If graph in router is uninitialized
+            if (router_.IsSomething()) { // If graph in router is uninitialized
                 router_.settings_.bus_velocity_ = bus_velocity_;
                 router_.settings_.bus_wait_time_ = bus_wait_time_;
                 router_.CreateGraph(transport_catalogue_); // Create it
