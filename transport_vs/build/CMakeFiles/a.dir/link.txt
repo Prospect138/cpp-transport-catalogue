@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/a.dir/main.cpp.o CMakeFiles/a.dir/domain.cpp.o CMakeFiles/a.dir/transport_catalogue.cpp.o CMakeFiles/a.dir/json.cpp.o CMakeFiles/a.dir/json_reader.cpp.o CMakeFiles/a.dir/map_renderer.cpp.o CMakeFiles/a.dir/svg.cpp.o CMakeFiles/a.dir/json_builder.cpp.o CMakeFiles/a.dir/transport_router.cpp.o -o a 

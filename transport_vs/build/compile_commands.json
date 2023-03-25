@@ -1,0 +1,47 @@
+[
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/main.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/main.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/main.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/domain.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/domain.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/domain.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/transport_catalogue.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/transport_catalogue.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/transport_catalogue.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/json.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/json_reader.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json_reader.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json_reader.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/map_renderer.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/map_renderer.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/map_renderer.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/svg.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/svg.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/svg.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/json_builder.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json_builder.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/json_builder.cpp"
+},
+{
+  "directory": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/build",
+  "command": "/usr/bin/g++   -g -std=gnu++17 -o CMakeFiles/a.dir/transport_router.cpp.o -c /home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/transport_router.cpp",
+  "file": "/home/anon/Документы/practicum/cpp-transport-catalogue/transport_vs/transport_router.cpp"
+}
+]

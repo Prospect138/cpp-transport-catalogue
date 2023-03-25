@@ -55,7 +55,7 @@ std::optional<RoutStat> TransportRouter::GetRouteStat(size_t id_stop_from, size_
     return RoutStat{total_time, items};
 }
 
-bool TransportRouter::IsSomething() const {
+bool TransportRouter::IsExist() const {
     return ! opt_graph_.has_value();
 }
 

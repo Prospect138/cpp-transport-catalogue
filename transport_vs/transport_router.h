@@ -31,7 +31,7 @@ public:
     RoutingSettings settings_;
 
     // Граф не создан
-    bool IsSomething() const;
+    bool IsExist() const;
 
 private:
     // дополнительная информация о ребре

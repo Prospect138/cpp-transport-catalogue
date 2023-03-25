@@ -11,8 +11,8 @@ using namespace std::literals;
 using namespace transport_catalogue;
 
 int main() {
-    std::ifstream infile("e4_input.json");
-    std::ofstream outfile("e4_out_test2.json");
+    std::ifstream infile("e1_input.json");
+    std::ofstream outfile("e1_out_test2.json");
     // create a transport catalog
     catalog::TransportCatalogue catalog;
     // create a router
