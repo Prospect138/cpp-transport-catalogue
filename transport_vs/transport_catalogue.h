@@ -45,13 +45,20 @@ public:
     const std::map<std::string_view, const Bus*> GetBuses() const;
     const std::map<std::string_view, const Stop*> GetStops() const;
     const std::set<std::string_view>& GetBusesForStop(std::string_view stop) const;
-    int GetCalculateDistance(const Stop* first_route, const Stop* second_route);
+    double GetCalculateDistance(const Stop* first_route, const Stop* second_route);
     Coordinates GetCoordinatesByStop(std::string_view stop_name) const;
     const std::deque<Stop>& GetAllStops() const;
     const std::deque<Bus>& GetAllBus() const;
+    const std::unordered_map<std::pair<const Stop*, const Stop*>, double, detail::StopsHasher>& 
+        GetDistances() const;
+    
+    void AddDistance(const std::string& stop1, const std::string& stop2, double distance);
+
+    void DirectAddBus(std::string bus_name, catalog::RouteType type, std::vector<std::string> stop_names);
 
 
 private:
+
     std::deque<Stop> stops_;
     std::deque<Bus> routs_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;

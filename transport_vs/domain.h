@@ -34,7 +34,8 @@ struct BusInfo{
 };
 
 struct RoutingSettings{
-    int bus_wait_time_ = 0; // minute
+    //size_t
+    double bus_wait_time_ = 0; // minute
     double bus_velocity_ = 0; // km/h
 };
 

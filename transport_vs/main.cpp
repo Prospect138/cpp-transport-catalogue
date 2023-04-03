@@ -1,29 +1,52 @@
-#include "json_reader.h"
 
 #include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <cassert>
-#include <algorithm>
+#include <string_view>
+
+#include "json_reader.h"
 
 using namespace std::literals;
+
 using namespace transport_catalogue;
 
-int main() {
-    std::ifstream infile("e4_input.json");
-    std::ofstream outfile("e4_out_test2.json");
-    // create a transport catalog
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
+    }
+
+    const std::string_view mode(argv[1]);
+
     catalog::TransportCatalogue catalog;
-    // create a router
     transport_router::TransportRouter router;
-    // map is not created, because its only constructs once on ProcessInput method with readers parameters
-    // create a reader with previosly created catalog and router
-    json_reader::JsonReader reader(catalog, router);
-    reader.ProcessInput(infile);
-    // but you still can construct map from main and initialize it with settings that reader stored 
-    //renderer::MapRenderer rnd(reader.GetParsedRenderSettings());
-    //rnd.RenderSvgMap(catalog, std::cout);
-    reader.WriteInfo(outfile);
-    return 0;
+    serializator::Serializator serializator(catalog, router);
+    json_reader::JsonReader reader(catalog, router, serializator);
+
+
+
+    //std::cout << "Check1\n";
+    if (mode == "make_base"sv) {
+        //std::ifstream file("s14_3_opentest_3_make_base.json");
+        //здесь надо прочитать json, заполнить базу, затем сериализовать базу в файл
+        //if (file){
+        //    std::cout << "File is ok\n";
+        //}
+        reader.MakeBase(std::cin);
+
+    } else if (mode == "process_requests"sv) {
+        //std::ifstream file2("s14_3_opentest_3_process_requests.json");
+        reader.ProcessRequest(std::cin);
+        reader.WriteInfo(std::cout);
+        //std::cout << "WIP\n";
+        // а здесь прочитать сериализованную базу из файла
+        // на основе сериализованного файла построить вывод
+        // process requests here
+
+    } else {
+        PrintUsage();
+        return 1;
+    }
 }

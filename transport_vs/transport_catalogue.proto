@@ -1,0 +1,33 @@
+syntax="proto3";
+
+import "map_renderer.proto";
+import "transport_router.proto";
+
+package proto_catalog_namespace;
+
+message Stop {
+    string name = 1;
+    double lat = 2;
+    double lng = 3;
+    uint32 id = 4;
+}
+
+message Bus {
+    string name = 1;
+    repeated uint32 index_stops = 2;
+    bool is_roundtrip = 3;
+}
+
+message Distance {
+    string id_stop_first = 1;
+    string id_stop_second = 2;
+    double distance = 3;
+}
+
+message TransportCatalogue {
+    repeated Bus buses = 1;
+    repeated Stop stops = 2;
+    repeated Distance distances = 3;
+    RenderSettings render_settings = 4;
+    RoutingSettings routing_settings = 5;
+}

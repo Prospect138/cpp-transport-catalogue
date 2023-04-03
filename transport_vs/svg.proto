@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package proto_catalog_namespace;
+
+message RGB {
+	uint32 red = 1;
+	uint32 green = 2;
+	uint32 blue = 3;
+}
+
+message RGBA {
+	uint32 red = 1;
+	uint32 green = 2;
+	uint32 blue = 3;
+	double opacity = 4;
+}
+
+
+message Color {
+	oneof OneOfColor {
+		string name_color = 1;
+		RGB rgb = 2;
+		RGBA rgba = 3;
+	}
+}

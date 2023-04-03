@@ -6,6 +6,7 @@
 #include "unordered_map"
 #include "unordered_set"
 
+#include <string_view>
 #include <memory>
 #include <optional>
 #include <algorithm>
@@ -31,7 +32,7 @@ public:
     RoutingSettings settings_;
 
     // Граф не создан
-    bool IsSomething() const;
+    bool IsExist() const;
 
 private:
     // дополнительная информация о ребре

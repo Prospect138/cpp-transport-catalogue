@@ -18,7 +18,9 @@ void TransportRouter::CreateGraph(TransportCatalogue& catalog) {
             id_for_stops[stop_from->id] = stop_from->stop_name;
 
             for (auto it_to = std::next(it_from); it_to != bus.rout.end(); ++it_to) {
+
                 const Stop* stop_to = *it_to;
+                    //std::cout << stop_to->stop_name << std::endl;
                 length += catalog.GetCalculateDistance(prev_stop, stop_to);
                 prev_stop = stop_to;
                 double time_on_bus = length / GetMetrMinFromKmH( settings_.bus_velocity_ ); // minute
@@ -48,15 +50,15 @@ std::optional<RoutStat> TransportRouter::GetRouteStat(size_t id_stop_from, size_
         const auto& edge = opt_graph_.value().GetEdge(edge_id);
 
         const auto [bus_num, span_count] = edges_buses_[edge_id];
-        items.push_back(RoutStat::ItemsWait{"Wait", static_cast<double>(settings_.bus_wait_time_), std::string(id_for_stops[edge.from])});
+        items.push_back(RoutStat::ItemsWait{"Wait", settings_.bus_wait_time_, std::string(id_for_stops[edge.from])});
 
-        items.push_back(RoutStat::ItemsBus{"Bus", edge.weight - static_cast<double>(settings_.bus_wait_time_), span_count, std::string(bus_num)});
+        items.push_back(RoutStat::ItemsBus{"Bus", edge.weight - settings_.bus_wait_time_, span_count, std::string(bus_num)});
     }
     return RoutStat{total_time, items};
 }
 
-bool TransportRouter::IsSomething() const {
-    return ! opt_graph_.has_value();
+bool TransportRouter::IsExist() const {
+    return !opt_graph_.has_value();
 }
 
 } //namespace transport_router

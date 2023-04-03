@@ -21,27 +21,31 @@ const std::vector<std::pair<std::string, double>>& dst_info){
         stopname_to_stop_[stop_name] -> coordinates.lng = lng;
     }
     Stop* st1 = stopname_to_stop_[stop_name];
-    for (auto& [key, value] : dst_info){
+    if (!dst_info.empty()){
+        for (auto& [key, value] : dst_info){
+            if (stopname_to_stop_.count(key)){
+                Stop* st2;
+                st2 = stopname_to_stop_[key];
+                stop_stop_to_dist_[{st1, st2}] = value;
+            }
+            else {
+                Stop st2;
+                st2.id = stop_ids_;
 
-        if (stopname_to_stop_.count(key)){
-            Stop* st2;
-            st2 = stopname_to_stop_[key];
-            stop_stop_to_dist_[{st1, st2}] = value;
-        }
-        else {
-            Stop st2;
-            st2.id = stop_ids_;
+                ++ stop_ids_;
 
-            ++ stop_ids_;
-
-            st2.stop_name = key;
-            stops_.push_back(std::move(st2));
-            stopname_to_stop_[stops_.back().stop_name] = &stops_.back();
-            stop_stop_to_dist_[{st1, &stops_.back()}] = value;
+                st2.stop_name = key;
+                stops_.push_back(std::move(st2));
+                stopname_to_stop_[stops_.back().stop_name] = &stops_.back();
+                stop_stop_to_dist_[{st1, &stops_.back()}] = value;
+            }
         }
     }
 
+
 }
+
+//void TransportCatalogue::DirectAddStop()
 
 // Find pointer to stop struct with string 
 Stop* TransportCatalogue::FindStop(const std::string_view stop) {
@@ -65,6 +69,22 @@ void TransportCatalogue::AddBus(const BusQuery& query){
         for (int i = static_cast<int>(bus.rout.size()-2); i >= 0; --i){
             bus.rout.push_back(bus.rout[i]);
         }
+    }
+    routs_.push_back(std::move(bus));
+    busname_to_bus_[routs_.back().rout_name] = &routs_.back();
+
+    for (const Stop* stop : busname_to_bus_[routs_.back().rout_name]->rout) {
+        stop_and_buses_[stop->stop_name].insert(routs_.back().rout_name);
+    }
+}
+
+void TransportCatalogue::DirectAddBus(std::string bus_name, catalog::RouteType type, std::vector<std::string> stop_names){
+    catalog::Bus bus;
+    bus.type = type;
+    bus.rout_name = bus_name;
+    for (auto stop : stop_names){
+        Stop* that_stop = FindStop(stop);
+        bus.rout.push_back(that_stop);
     }
     routs_.push_back(std::move(bus));
     busname_to_bus_[routs_.back().rout_name] = &routs_.back();
@@ -154,13 +174,15 @@ const std::map<std::string_view, const Stop*> TransportCatalogue::GetStops() con
     return result;
 }
 
-int TransportCatalogue::GetCalculateDistance(const Stop* first_route,
+double TransportCatalogue::GetCalculateDistance(const Stop* first_route,
                                              const Stop* second_route) {
 
     if (stop_stop_to_dist_.count({first_route, second_route}) != 0) {
-        return static_cast<int>(stop_stop_to_dist_[{first_route, second_route}]);
+        return (stop_stop_to_dist_[{first_route, second_route}]);
     }
-    else return 0;
+    else {
+        return (stop_stop_to_dist_[{second_route, first_route}]);
+    }
 }
 
 Coordinates TransportCatalogue::GetCoordinatesByStop(std::string_view stop_name) const {
@@ -181,4 +203,14 @@ const std::deque<Stop>& TransportCatalogue::GetAllStops() const {
 const std::deque<Bus>& TransportCatalogue::GetAllBus() const{
     return routs_;
 }
+
+const std::unordered_map<std::pair<const Stop*, const Stop *>, double, detail::StopsHasher> 
+        &TransportCatalogue::GetDistances() const {
+    return stop_stop_to_dist_;
+}
+
+void TransportCatalogue::AddDistance(const std::string& stop1, const std::string& stop2, double distance) {
+    stop_stop_to_dist_.insert({{stopname_to_stop_.at(stop1), stopname_to_stop_.at(stop2)}, distance});
+}
+
 } //namespace transport_catalogue::catalog

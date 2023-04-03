@@ -17,22 +17,20 @@ public:
     using runtime_error::runtime_error;
 };
 
-class Node final : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
+class Node final
+    : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
 public:
     using variant::variant;
     using Value = variant;
+
+    Node(Value value) :
+        Value(std::move(value))
+    {;}
 
     bool IsInt() const {
         return std::holds_alternative<int>(*this);
     }
     int AsInt() const {
-        using namespace std::literals;
-        if (!IsInt()) {
-            throw std::logic_error("Not an int"s);
-        }
-        return std::get<int>(*this);
-    }
-    int AsInt() {
         using namespace std::literals;
         if (!IsInt()) {
             throw std::logic_error("Not an int"s);
@@ -53,26 +51,11 @@ public:
         }
         return IsPureDouble() ? std::get<double>(*this) : AsInt();
     }
-    double AsDouble() {
-        using namespace std::literals;
-        if (!IsDouble()) {
-            throw std::logic_error("Not a double"s);
-        }
-        return IsPureDouble() ? std::get<double>(*this) : AsInt();
-    }
 
     bool IsBool() const {
         return std::holds_alternative<bool>(*this);
     }
     bool AsBool() const {
-        using namespace std::literals;
-        if (!IsBool()) {
-            throw std::logic_error("Not a bool"s);
-        }
-
-        return std::get<bool>(*this);
-    }
-    bool AsBool() {
         using namespace std::literals;
         if (!IsBool()) {
             throw std::logic_error("Not a bool"s);
@@ -96,27 +79,11 @@ public:
 
         return std::get<Array>(*this);
     }
-    Array& AsArray() {
-        using namespace std::literals;
-        if (!IsArray()) {
-            throw std::logic_error("Not an array"s);
-        }
-
-        return std::get<Array>(*this);
-    }
 
     bool IsString() const {
         return std::holds_alternative<std::string>(*this);
     }
     const std::string& AsString() const {
-        using namespace std::literals;
-        if (!IsString()) {
-            throw std::logic_error("Not a string"s);
-        }
-
-        return std::get<std::string>(*this);
-    }
-    std::string& AsString() {
         using namespace std::literals;
         if (!IsString()) {
             throw std::logic_error("Not a string"s);
@@ -136,14 +103,6 @@ public:
 
         return std::get<Dict>(*this);
     }
-    Dict& AsDict() {
-        using namespace std::literals;
-        if (!IsDict()) {
-            throw std::logic_error("Not a dict"s);
-        }
-
-        return std::get<Dict>(*this);
-    }
 
     bool operator==(const Node& rhs) const {
         return GetValue() == rhs.GetValue();
@@ -152,6 +111,7 @@ public:
     const Value& GetValue() const {
         return *this;
     }
+
     Value& GetValue() {
         return *this;
     }

@@ -4,6 +4,22 @@ using namespace std::literals;
 
 namespace transport_catalogue::json_reader {
 
+void JsonReader::Serialize(){
+    serializator_.Serialize();
+}
+
+void JsonReader::Deserialize()
+{
+    serializator_.Deserialize();
+}
+
+void JsonReader::ReadSerializationSettings(const json::Node &node){
+    serializator::SerializatorSettings settings;
+    settings.path = node.AsDict().at("file"s).AsString();
+    serializator_.SetSetting(settings);
+}
+
+
 // Write parsed info to out
 // For now write info os the only way to get output from the class
 void JsonReader::WriteInfo(std::ostream& out){
@@ -16,42 +32,68 @@ void JsonReader::WriteInfo(std::ostream& out){
 
 // Base function call other methods;
 // We process the whole json at once so we proccess it right here in JsonReader class;
-void JsonReader::ProcessInput(std::istream& input){
-    JsonReader::ReadRawJson(input);
-    JsonReader::ParseJson();
+void JsonReader::MakeBase(std::istream& input){
+    JsonReader::ReadRawJson(input, base_document_);
+    JsonReader::ParseBase();
+    JsonReader::Serialize();
 }
 
 // Reads Raw Json and put it to obj
-void JsonReader::ReadRawJson(std::istream& input){
+void JsonReader::ReadRawJson(std::istream& input, std::vector<json::Document>& document){
     json::Document doc = json::Load(input);
     if (doc.GetRoot().IsDict()) {
-        documents_.emplace_back(std::move(doc));
+        document.emplace_back(std::move(doc));
     }
 }
 
 // Prosecc existong jsons in object
-void JsonReader::ParseJson(){
-    for (auto& doc : documents_){
+void JsonReader::ParseBase(){
+    for (auto& doc : base_document_){
         json::Node raw_map = doc.GetRoot();
-        // If input json is not a map, throw exception;
         if (!raw_map.IsDict()){
             throw json::ParsingError("Incorrect input data type");
         }
-        // Adding info to catalog and collecting out requests;
         for(const auto& [key, value] : raw_map.AsDict()){
             if (key == "base_requests"){
                 AddToCatalog(raw_map.AsDict().at(key));
             }
             else if (key == "render_settings"){
                 ReadRenderSettings(raw_map.AsDict().at(key));
+                serializator_.SetRendererSettings(render_settings_);
             }
             else if (key == "routing_settings"){
                 AddRoutingSettings(raw_map.AsDict().at(key));
             }
+            else if (key == "serialization_settings"){
+                //std::cout << "Found serialization settings \n";
+                ReadSerializationSettings(raw_map.AsDict().at(key));
+            }
+        }
+    }
+}
+
+void JsonReader::ProcessRequest(std::istream& input){
+    JsonReader::ReadRawJson(input, request_document_);
+    JsonReader::ParseRequest();
+}
+
+void JsonReader::ParseRequest(){
+    for (auto& doc : request_document_){
+        json::Node raw_map = doc.GetRoot();
+        // If input json is not a map, throw exception;
+        if (!raw_map.IsDict()){
+            throw json::ParsingError("Incorrect input data type");
+        }
+
+        // Adding info to catalog and collecting out requests;
+        for(const auto& [key, value] : raw_map.AsDict()){
+            if (key == "serialization_settings"){
+                ReadSerializationSettings(raw_map.AsDict().at(key));
+                Deserialize();
+            }
             else if (key == "stat_requests"){
                 CollectOutput(raw_map.AsDict().at(key));
             }
-            //сюда воткнуть [routing_settings: {bus_wait_time, bus_velocity}]
         }
     }
 }
@@ -59,10 +101,10 @@ void JsonReader::ParseJson(){
 void JsonReader::AddRoutingSettings(const json::Node &root){
     for (auto [key, value] : root.AsDict()){
         if (key == "bus_wait_time"){
-            bus_wait_time_ = value.AsInt();
+            router_.settings_.bus_wait_time_ = value.AsDouble();
         }
         else if (key == "bus_velocity"){
-            bus_velocity_ = value.AsInt();
+            router_.settings_.bus_velocity_ = value.AsDouble();
         }
     }
 }
@@ -179,7 +221,7 @@ void JsonReader::AddToCatalog(json::Node node) {
 }
 
 void JsonReader::CollectMap(int id){
-    renderer::MapRenderer svg_map(GetParsedRenderSettings());
+    renderer::MapRenderer svg_map(serializator_.GetRenderSettings());
     std::ostringstream stream;
     svg_map.RenderSvgMap(transport_catalogue_, stream);
     json::Dict result;
@@ -237,12 +279,12 @@ void JsonReader::CollectRout(int id, const json::Dict& request_fields){
         }
         items.push_back(dict);
     }
-    json::Dict dict;
-    dict.insert({"item", items});
-    dict.insert({"request_id", id});
-    dict.insert({"total_time", get_find_route -> total_time});
+    json::Dict rout_stat_dict;
+    rout_stat_dict.insert({"items", items});
+    rout_stat_dict.insert({"request_id", id});
+    rout_stat_dict.insert({"total_time", get_find_route -> total_time});
 
-    request_to_output_.push_back(dict);
+    request_to_output_.push_back(rout_stat_dict);
 }
 
 void JsonReader::CollectStop(const std::string& name, int id){
@@ -273,6 +315,7 @@ void JsonReader::CollectBus(catalog::Bus* bus, int id){
 
 void JsonReader::CollectOutput(json::Node request){
     using namespace transport_catalogue;
+
     if (!request.IsArray()){
         throw json::ParsingError("Incorrect input data type");
     }
@@ -310,9 +353,7 @@ void JsonReader::CollectOutput(json::Node request){
         //or rout
         else if (type == "Route"s){
 
-            if (router_.IsSomething()) { // If graph in router is uninitialized
-                router_.settings_.bus_velocity_ = bus_velocity_;
-                router_.settings_.bus_wait_time_ = bus_wait_time_;
+            if (router_.IsExist()) { // If graph in router is uninitialized
                 router_.CreateGraph(transport_catalogue_); // Create it
             }
             CollectRout(id, request_fields); //And then parse request fields
@@ -361,6 +402,7 @@ void JsonReader::ReadRenderSettings(json::Node node) {
     }
 
     raw_render_settings_ = node.AsDict();
+    render_settings_ = GetParsedRenderSettings();
 
 }
 renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
