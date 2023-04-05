@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string_view>
 
+#include "transport_catalogue.h"
+#include "serialization.h"
 #include "json_reader.h"
 
 using namespace std::literals;
@@ -23,27 +25,31 @@ int main(int argc, char* argv[]) {
     catalog::TransportCatalogue catalog;
     transport_router::TransportRouter router;
     serializator::Serializator serializator(catalog, router);
-    json_reader::JsonReader reader(catalog, router, serializator);
+    json_reader::JsonReader reader(catalog, router);
 
 
 
     //std::cout << "Check1\n";
     if (mode == "make_base"sv) {
         //std::ifstream file("s14_3_opentest_3_make_base.json");
-        //здесь надо прочитать json, заполнить базу, затем сериализовать базу в файл
-        //if (file){
-        //    std::cout << "File is ok\n";
-        //}
         reader.MakeBase(std::cin);
+        //задаим настройки сериализатора из тех, что были запарсены
+        serializator.SetSetting(reader.GetSerializatorSettings());
+        serializator.SetRendererSettings(reader.GetParsedRenderSettings());
+        serializator.SetRouterSettings(reader.GetRoutingSettings());
+        serializator.Serialize();
 
     } else if (mode == "process_requests"sv) {
         //std::ifstream file2("s14_3_opentest_3_process_requests.json");
         reader.ProcessRequest(std::cin);
+
+        serializator.SetSetting(reader.GetSerializatorSettings());
+        serializator.Deserialize();
+        reader.SetRendererSettings(serializator.GetRenderSettings());
+
+        reader.ParseStatRequest();
+
         reader.WriteInfo(std::cout);
-        //std::cout << "WIP\n";
-        // а здесь прочитать сериализованную базу из файла
-        // на основе сериализованного файла построить вывод
-        // process requests here
 
     } else {
         PrintUsage();

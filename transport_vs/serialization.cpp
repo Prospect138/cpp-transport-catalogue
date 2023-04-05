@@ -16,8 +16,9 @@ void Serializator::SetRendererSettings(const renderer::RendererSettings &setting
 }
 
 void Serializator::SetRouterSettings(const transport_router::RoutingSettings& settings){
-    router_.settings_.bus_velocity_ = settings.bus_velocity_;
-    router_.settings_.bus_wait_time_ = settings.bus_wait_time_;
+    routing_settings_ = settings;
+    //router_.settings_.bus_velocity_ = settings.bus_velocity_;
+    //router_.settings_.bus_wait_time_ = settings.bus_wait_time_;
 }
 
 void Serializator::Serialize() {
@@ -118,11 +119,12 @@ void Serializator::WriteMap()
 void Serializator::WriteRoutingSettings()
 {
     proto_catalog_namespace::RoutingSettings* serialized_routing_settings = pr_catalogue_.mutable_routing_settings();
-    serialized_routing_settings->set_bus_wait_time(router_.settings_.bus_wait_time_);
-    serialized_routing_settings->set_bus_velocity(router_.settings_.bus_velocity_);
+    serialized_routing_settings->set_bus_wait_time(routing_settings_.bus_wait_time_);
+    serialized_routing_settings->set_bus_velocity(routing_settings_.bus_velocity_);
 }
 
 void Serializator::ReadRoutingSettings(){
+    //router_.settings_ = 
     router_.settings_.bus_wait_time_ = pr_catalogue_.routing_settings().bus_wait_time();
     router_.settings_.bus_velocity_ = pr_catalogue_.routing_settings().bus_velocity();
 }

@@ -4,25 +4,26 @@ using namespace std::literals;
 
 namespace transport_catalogue::json_reader {
 
-void JsonReader::Serialize(){
-    serializator_.Serialize();
-}
+//void JsonReader::Serialize(){
+//    serializator_.Serialize();
+//}
 
-void JsonReader::Deserialize()
-{
-    serializator_.Deserialize();
-}
+//void JsonReader::Deserialize()
+//{
+//    serializator_.Deserialize();
+//}
 
 void JsonReader::ReadSerializationSettings(const json::Node &node){
-    serializator::SerializatorSettings settings;
-    settings.path = node.AsDict().at("file"s).AsString();
-    serializator_.SetSetting(settings);
+    //serializator::SerializatorSettings settings;
+    serializator_settings_.path = node.AsDict().at("file"s).AsString();
+    //serializator_.SetSetting(settings);
 }
 
 
 // Write parsed info to out
 // For now write info os the only way to get output from the class
 void JsonReader::WriteInfo(std::ostream& out){
+    
     json::Array output_array;
     for (json::Node element : request_to_output_){
         output_array.push_back(element);
@@ -35,7 +36,7 @@ void JsonReader::WriteInfo(std::ostream& out){
 void JsonReader::MakeBase(std::istream& input){
     JsonReader::ReadRawJson(input, base_document_);
     JsonReader::ParseBase();
-    JsonReader::Serialize();
+    //JsonReader::Serialize();
 }
 
 // Reads Raw Json and put it to obj
@@ -59,7 +60,7 @@ void JsonReader::ParseBase(){
             }
             else if (key == "render_settings"){
                 ReadRenderSettings(raw_map.AsDict().at(key));
-                serializator_.SetRendererSettings(render_settings_);
+                //serializator_.SetRendererSettings(render_settings_);
             }
             else if (key == "routing_settings"){
                 AddRoutingSettings(raw_map.AsDict().at(key));
@@ -74,10 +75,26 @@ void JsonReader::ParseBase(){
 
 void JsonReader::ProcessRequest(std::istream& input){
     JsonReader::ReadRawJson(input, request_document_);
-    JsonReader::ParseRequest();
+    JsonReader::ParseSerializeSettings();
 }
 
-void JsonReader::ParseRequest(){
+void JsonReader::ParseStatRequest() {
+    for (auto& doc : request_document_){
+        json::Node raw_map = doc.GetRoot();
+        // If input json is not a map, throw exception;
+        if (!raw_map.IsDict()){
+            throw json::ParsingError("Incorrect input data type");
+        }
+        // Adding info to catalog and collecting out requests;
+        for(const auto& [key, value] : raw_map.AsDict()){
+            if (key == "stat_requests"){
+                CollectOutput(raw_map.AsDict().at(key));
+            }
+        }
+    }
+}
+
+void JsonReader::ParseSerializeSettings(){
     for (auto& doc : request_document_){
         json::Node raw_map = doc.GetRoot();
         // If input json is not a map, throw exception;
@@ -89,10 +106,6 @@ void JsonReader::ParseRequest(){
         for(const auto& [key, value] : raw_map.AsDict()){
             if (key == "serialization_settings"){
                 ReadSerializationSettings(raw_map.AsDict().at(key));
-                Deserialize();
-            }
-            else if (key == "stat_requests"){
-                CollectOutput(raw_map.AsDict().at(key));
             }
         }
     }
@@ -221,7 +234,7 @@ void JsonReader::AddToCatalog(json::Node node) {
 }
 
 void JsonReader::CollectMap(int id){
-    renderer::MapRenderer svg_map(serializator_.GetRenderSettings());
+    renderer::MapRenderer svg_map(render_settings_);
     std::ostringstream stream;
     svg_map.RenderSvgMap(transport_catalogue_, stream);
     json::Dict result;
@@ -324,6 +337,7 @@ void JsonReader::CollectOutput(json::Node request){
 
     // Iterating over request array
     for (auto& element : arr){
+        //std::cout << "collecting doc\n";
         if (!element.IsDict()) {
             throw json::ParsingError("One of request nodes is not a dictionary.");
         }
@@ -346,12 +360,14 @@ void JsonReader::CollectOutput(json::Node request){
 
         //Parse map
         if ( type == "Map"s) {
+            //std::cout << "is map\n";
             CollectMap(id);
             continue;
         }
 
         //or rout
         else if (type == "Route"s){
+            //std::cout << "is route\n";
 
             if (router_.IsExist()) { // If graph in router is uninitialized
                 router_.CreateGraph(transport_catalogue_); // Create it
@@ -371,6 +387,7 @@ void JsonReader::CollectOutput(json::Node request){
         // and then with name parse:
         // Bus
         if ( type == "Bus"s) {
+            //std::cout << "is bus\n";
             catalog::Bus* bus = transport_catalogue_.FindBus(name);
             if (!bus){
                 request_to_output_.push_back(GetErrorNode(id));
@@ -381,6 +398,7 @@ void JsonReader::CollectOutput(json::Node request){
 
         // And even stop!
         else if (type == "Stop"s) {
+            //std::cout << "is stop\n";
             if (!(transport_catalogue_.FindStop(name)) ) {
                 request_to_output_.push_back(GetErrorNode(id));
                 continue;
@@ -464,6 +482,21 @@ renderer::RendererSettings JsonReader::GetParsedRenderSettings(){
     }
 
     return settings;
+}
+
+void JsonReader::SetRendererSettings(const renderer::RendererSettings &settings)
+{
+    render_settings_ = settings;
+}
+
+serializator::SerializatorSettings JsonReader::GetSerializatorSettings()
+{
+    return serializator_settings_;
+}
+
+transport_router::RoutingSettings JsonReader::GetRoutingSettings()
+{
+    return router_.settings_;
 }
 
 inline json::Node GetErrorNode(int id) {
